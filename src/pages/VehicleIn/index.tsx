@@ -47,7 +47,7 @@ export default function VehicleInPage() {
     setToast({ open: true, message, severity });
   };
 
-  // 🌟 KHỬ RÒ RỈ BỘ NHỚ RAM (Garbage Collection cho Blob URL)
+  // Khử rò rỉ bộ nhớ RAM (Garbage Collection cho Blob URL)
   useEffect(() => {
     return () => {
       if (vehicleData?.nationalIdImage && vehicleData.nationalIdImage.startsWith("blob:")) {
@@ -81,6 +81,9 @@ export default function VehicleInPage() {
         },
       });
 
+      console.log(">>> [API OCR RESPONSE]:", response.data);
+
+      // Trường hợp 1: Định danh thành công lượt vào mới
       if (response.data?.status === "SUCCESS") {
         const ocrData = response.data.data;
         const linkedSession = response.data.linked_session;
@@ -110,10 +113,35 @@ export default function VehicleInPage() {
         if (currentEventUid) {
           setIsOpenCompareModal(true);
         }
+
+      // Trường hợp 2: Tài xế trùng lặp / Chưa checkout khỏi hệ thống
+      } else if (response.data?.status === "DUPLICATE_CCCD_IMAGE") {
+        showToast(response.data?.message || "Tài xế này hiện đang ở trong bến (Chưa checkout)!", "error");
+        
+        // Giải phóng bộ nhớ ảnh tạm và reset form sạch sẽ
+        URL.revokeObjectURL(imageUrl);
+        setVehicleData(null);
+        setEventUid("");
+        setSessionStatus("");
+        
+      } else {
+        // Dự phòng các trạng thái phản hồi khác từ hệ thống
+        showToast(response.data?.message || "Phản hồi không rõ từ máy chủ.", "warning");
       }
     } catch (error: any) {
-      console.error(">>> [API ERROR OCR VECHILE-IN]:", error.response?.data || error.message);
-      showToast("Thất bại khi kết nối máy chủ xử lý dữ liệu OCR.", "error");
+      console.error(">>> [API ERROR OCR VEHICLE-IN]:", error);
+      const serverErrorMsg = error.response?.data?.message || error.response?.data?.error;
+      
+      if (serverErrorMsg) {
+        showToast(serverErrorMsg, "error");
+      } else {
+        showToast("Thất bại khi kết nối máy chủ xử lý dữ liệu OCR.", "error");
+      }
+
+      // Reset màn hình về trạng thái trống khi lỗi kết nối mạng
+      setVehicleData(null);
+      setEventUid("");
+      setSessionStatus("");
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
       setIsLoading(false);
@@ -124,7 +152,6 @@ export default function VehicleInPage() {
     e.preventDefault();
     if (!vehicleData) return;
 
-    // Toàn bộ logic giao diện mẫu in ấn phiếu vật lý
     const printHtml = `
       <html>
         <head>
@@ -165,7 +192,6 @@ export default function VehicleInPage() {
       ...printHistory,
     ]);
     
-    // Reset toàn bộ tiến trình sau khi cấp phát thẻ thành công
     setVehicleData(null);
     setEventUid("");
     setSessionStatus("");
@@ -174,7 +200,7 @@ export default function VehicleInPage() {
   return (
     <Box
       sx={{
-        bgcolor: theme.palette.background.default, // Chuẩn hóa Token hệ thống
+        bgcolor: theme.palette.background.default,
         minHeight: "100vh",
         p: { xs: 2, sm: 3 },
       }}
@@ -184,7 +210,7 @@ export default function VehicleInPage() {
         sx={{
           mb: 4,
           p: 2,
-          borderBottom: `1px solid ${theme.palette.divider}`, // Chuẩn hóa Token hệ thống
+          borderBottom: `1px solid ${theme.palette.divider}`,
           display: "flex",
           flexDirection: { xs: "column", sm: "row" },
           alignItems: { xs: "stretch", sm: "center" },

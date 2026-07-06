@@ -11,6 +11,7 @@ import UserManagementPage from '../pages/AccountManagement/UserManagementPage';
 import VehicleOutPage from '../pages/VehicleOut';
 import LoginPage from '../pages/LoginPage/LoginPage'; 
 import ProtectedRoute from '../components/ProtectRoute';
+import DashboardPage from '../pages/DashBoard/DashBoardPage';
 
 export default function AppRoutes() {
   return (
@@ -28,6 +29,7 @@ export default function AppRoutes() {
       >
         <Route path="/" element={<Navigate to="/camera-overview" replace />} />
         <Route path="/camera-overview" element={<CameraOverviewPage />} />
+        <Route path="/dashboard" element={<DashboardPage/>} />
         <Route path="/log-history" element={<HistoryLogPage />} />
         <Route path="/vehicle-in" element={<VehicleInPage />} />
         <Route path="/vehicle-out" element={<VehicleOutPage />} />
