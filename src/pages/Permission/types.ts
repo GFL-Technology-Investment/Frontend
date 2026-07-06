@@ -1,5 +1,3 @@
-// src/pages/SystemManagement/Permission/types.ts
-
 export type UserRole = 'ADMIN' | 'MANAGER' | 'SECURITY_GUARD';
 
 export interface UserPermission {
