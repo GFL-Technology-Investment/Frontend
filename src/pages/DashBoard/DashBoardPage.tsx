@@ -1,20 +1,10 @@
 import { Box, Paper, Typography, useTheme, Card, CardContent, LinearProgress } from "@mui/material";
-// 🌟 Sử dụng Grid2 (Hệ thống Grid mới của MUI hỗ trợ thuộc tính size)
-import Grid from "@mui/material/Grid"; 
+import { useState, useEffect } from "react";
+import Grid from "@mui/material/Grid";
 import { BarChart, Bar, XAxis, ResponsiveContainer } from "recharts";
-// 🌟 Sửa lại import icon chính xác của MUI
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
-
-// Dữ liệu mẫu khớp theo hình ảnh của bạn
-const kpiData = [
-  { title: "Tổng số xe", value: 25, color: "#111" },
-  { title: "Trong sân bay", value: 18, color: "#666" },
-  { title: "Đang tra nạp", value: 7, color: "#2e7d32", bgColor: "#e8f5e9" },
-  { title: "Chờ nhiệm vụ", value: 5, color: "#b78103", bgColor: "#fff8e1" },
-  { title: "Đã ra cổng", value: 2, color: "#444" },
-  { title: "Cảnh báo", value: 1, color: "#c62828", bgColor: "#ffebee" },
-];
+import axiosInstance from "../../configs/axios";
 
 const fleetStatus = [
   { id: "TN01", status: "Tra nạp", fuel: 62, position: "Stand 12", color: "success" },
@@ -42,13 +32,83 @@ const chartData = [
 export default function DashboardPage() {
   const theme = useTheme();
 
+  // --- QUAN LÝ TRẠNG THÁI REAL-TIME ---
+  const [totalVehicles, setTotalVehicles] = useState<number>(0);
+  const [vehiclesInAirport, setVehiclesInAirport] = useState<number>(0);
+  const [vehiclesCheckedOut, setVehiclesCheckedOut] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        // Gọi API lấy danh sách lịch sử lịch trình
+        const response = await axiosInstance.get("/api/v1/access/history", {
+          params: { page: 1, limit: 50 }
+        });
+
+        const allLogs = response.data?.data || [];
+
+        if (Array.isArray(allLogs)) {
+          // 1. Bước lọc: Chỉ lấy các bản ghi của XE (vehicle_event_uid khác null)
+          const vehicleLogs = allLogs.filter((log: any) => log.vehicle_event_uid !== null && log.vehicle_event_uid !== undefined);
+
+          // 2. Phân loại và đếm trạng thái luồng xe dựa trên 'status'
+          let countInAirport = 0;
+          let countCheckedOut = 0;
+
+          vehicleLogs.forEach((log: any) => {
+            if (log.status === "CHECKED_IN") {
+              countInAirport++;
+            } else if (log.status === "CHECKED_OUT") {
+              countCheckedOut++;
+            }
+          });
+
+          // 3. Cập nhật đồng bộ lên giao diện điều hành
+          setTotalVehicles(vehicleLogs.length);
+          setVehiclesInAirport(countInAirport);
+          setVehiclesCheckedOut(countCheckedOut);
+        }
+      } catch (error) {
+        console.error("Lỗi khi đồng bộ dữ liệu giám sát luồng xe:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Thiết lập mảng KPI đồng bộ dữ liệu động
+  const kpiData = [
+    {
+      title: "Tổng số xe",
+      value: isLoading ? "..." : totalVehicles,
+      color: theme.palette.text.primary,
+    },
+    { 
+      title: "Trong sân bay", 
+      value: isLoading ? "..." : vehiclesInAirport, 
+      color: "#0288d1",
+      bgColor: theme.palette.mode === 'light' ? '#e3f2fd' : 'rgba(2, 136, 209, 0.08)'
+    },
+    { title: "Đang tra nạp", value: 7, color: "#2e7d32", bgColor: "#e8f5e9" },
+    { title: "Chờ nhiệm vụ", value: 5, color: "#b78103", bgColor: "#fff8e1" },
+    { 
+      title: "Đã ra cổng", 
+      value: isLoading ? "..." : vehiclesCheckedOut, 
+      color: theme.palette.mode === 'light' ? '#424242' : '#bdbdbd' 
+    },
+    { title: "Cảnh báo", value: 1, color: "#c62828", bgColor: "#ffebee" },
+  ];
+
   return (
     <Box sx={{ p: 3, bgcolor: theme.palette.background.default, minHeight: "100vh" }}>
-      
-      {/* 1. KHU VỰC THỂ THÔNG SỐ (KPI TOP CARDS) */}
+
+      {/* 1. KHU VỰC THẺ THÔNG SỐ (KPI TOP CARDS) */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {kpiData.map((kpi, idx) => (
-          // 🌟 Áp dụng thuộc tính size thay vì đặt rải rác xs, sm, md cũ
           <Grid size={{ xs: 6, sm: 4, md: 2 }} key={idx}>
             <Paper
               elevation={0}
@@ -79,14 +139,12 @@ export default function DashboardPage() {
           <Paper sx={{ p: 2, borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, alignItems: "center" }}>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold", display: "flex", alignItems: "center", gap: 1 }}>
-                {/* 🌟 Đổi size="small" thành fontSize="small" đúng chuẩn SvgIcon */}
                 <CameraAltIcon fontSize="small" /> Camera ra vào cổng
               </Typography>
               <Typography variant="caption" sx={{ color: "text.secondary" }}>Cập nhật liên tục</Typography>
             </Box>
 
             <Grid container spacing={2}>
-              {/* Gate A */}
               <Grid size={{ xs: 12, sm: 4 }}>
                 <Card variant="outlined" sx={{ borderRadius: 2 }}>
                   <Box sx={{ height: 120, bgcolor: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -103,7 +161,6 @@ export default function DashboardPage() {
                 </Card>
               </Grid>
 
-              {/* Gate B */}
               <Grid size={{ xs: 12, sm: 4 }}>
                 <Card variant="outlined" sx={{ borderRadius: 2 }}>
                   <Box sx={{ height: 120, bgcolor: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -120,7 +177,6 @@ export default function DashboardPage() {
                 </Card>
               </Grid>
 
-              {/* Depot Error Gate */}
               <Grid size={{ xs: 12, sm: 4 }}>
                 <Card variant="outlined" sx={{ borderRadius: 2, borderColor: "error.light", bgcolor: "#fdf2f2" }}>
                   <Box sx={{ height: 120, bgcolor: "#fbeaea", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -146,8 +202,7 @@ export default function DashboardPage() {
             <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 2 }}>
               🚛 Fleet status
             </Typography>
-            
-            {/* Table Header */}
+
             <Grid container sx={{ borderBottom: `1px solid ${theme.palette.divider}`, pb: 1, mb: 1, px: 1 }}>
               <Grid size={2}><Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>Xe</Typography></Grid>
               <Grid size={4}><Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>Trạng thái</Typography></Grid>
@@ -155,13 +210,12 @@ export default function DashboardPage() {
               <Grid size={3}><Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary" }}>Vị trí</Typography></Grid>
             </Grid>
 
-            {/* List xe */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               {fleetStatus.map((item, idx) => (
                 <Grid container key={idx} sx={{ alignItems: "center", px: 1 }}>
                   <Grid size={2}><Typography variant="body2" sx={{ fontWeight: "bold" }}>{item.id}</Typography></Grid>
                   <Grid size={4}>
-                    <Typography variant="caption" sx={{ 
+                    <Typography variant="caption" sx={{
                       px: 1, py: 0.3, borderRadius: 1, fontWeight: "bold",
                       bgcolor: `${item.color}.light`, color: `${item.color}.dark`,
                       display: "inline-block"
@@ -187,10 +241,8 @@ export default function DashboardPage() {
         </Grid>
       </Grid>
 
-      {/* 3. KHU VỰC THỜI GIAN (TIMELINE), THỐNG KÊ NHANH & CẢNH BÁO */}
+      {/* 3. KHU VỰC THỜI GIAN, THỐNG KÊ NHANH & CẢNH BÁO */}
       <Grid container spacing={3}>
-        
-        {/* TIMELINE RA VÀO */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 2, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, minHeight: 250 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 2 }}>🕒 Timeline ra vào</Typography>
@@ -209,11 +261,9 @@ export default function DashboardPage() {
           </Paper>
         </Grid>
 
-        {/* THỐNG KÊ NHANH */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 2, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, minHeight: 250 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>📊 Thống kê nhanh</Typography>
-            
             <Box sx={{ height: 100, mt: 1 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
@@ -222,7 +272,6 @@ export default function DashboardPage() {
                 </BarChart>
               </ResponsiveContainer>
             </Box>
-
             <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 0.8 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>RFID đọc thành công</Typography>
@@ -240,7 +289,6 @@ export default function DashboardPage() {
           </Paper>
         </Grid>
 
-        {/* BOX CẢNH BÁO */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 2, borderRadius: 2, border: "1px solid #ffcdd2", bgcolor: "#fffbfe", minHeight: 250 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "error.main", display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
@@ -253,7 +301,6 @@ export default function DashboardPage() {
             </Box>
           </Paper>
         </Grid>
-
       </Grid>
     </Box>
   );
