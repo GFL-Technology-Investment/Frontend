@@ -1,67 +1,88 @@
-import { Paper, Typography, List, ListItem, ListItemText, useTheme } from '@mui/material'; // 🌟 Import useTheme
+// components/HistoryLog.tsx
+import { Paper, Typography, List, ListItem, ListItemText, useTheme } from '@mui/material';
 
 interface HistoryLogProps {
   history: string[];
 }
 
 export default function HistoryLog({ history }: HistoryLogProps) {
-  const theme = useTheme(); // 🌟 Kích hoạt bộ theo dõi Theme động của hệ thống
+  const theme = useTheme();
+
+  // Hàm tiện ích phân tích màu sắc động dựa trên nội dung text log
+  const getLogColors = (logText: string) => {
+    const isErrorOrBlock = logText.includes('CHƯA CHECKOUT') || logText.includes('LỖI') || logText.includes('THẤT BẠI');
+    
+    if (isErrorOrBlock) {
+      return {
+        primary: theme.palette.mode === 'light' ? '#d32f2f' : '#f44336', // Đỏ Enterprise
+        secondary: theme.palette.mode === 'light' ? '#ef5350' : '#e57373',
+        statusText: '➔ Hệ thống từ chối đăng ký lượt mới!'
+      };
+    }
+    
+    // Mặc định là log thành công (In thẻ vào)
+    return {
+      primary: theme.palette.mode === 'light' ? '#2e7d32' : '#4caf50', // Xanh lá
+      secondary: theme.palette.mode === 'light' ? '#4caf50' : '#81c784',
+      statusText: '➔ Đã lưu vào cơ sở dữ liệu và in cấp phát thẻ thành công!'
+    };
+  };
 
   return (
-    // 🌟 Thay thế màu nền Paper và viền động theo theme
     <Paper 
       sx={{ 
         p: 2, 
-        bgcolor: theme.palette.customBg.card, 
+        bgcolor: theme.palette.customBg?.card || 'background.paper', 
         borderRadius: 2, 
-        border: `1px solid ${theme.palette.customBg.border}` 
+        border: `1px solid ${theme.palette.customBg?.border || theme.palette.divider}` 
       }}
     >
-      {/* Màu tiêu đề log ăn theo màu text phụ của hệ thống */}
       <Typography variant="subtitle1" sx={{ color: theme.palette.text.secondary, fontWeight: 'bold', mb: 1 }}>
-        📜 Lịch sử liên kết hệ thống:
+        📜 Lịch sử liên kết hệ thống (Phiên làm việc hiện tại):
       </Typography>
 
       {history.length === 0 ? (
-        // Màu thông báo trống tự động chuyển từ xám sẫm sang xám nhạt tương ứng để không bị chìm
         <Typography variant="body2" sx={{ color: theme.palette.text.disabled, py: 1 }}>
-          Chưa có lượt xe nào được tạo trong phiên làm việc này.
+          Chưa có lượt xe nào được tạo hoặc ghi nhận trong phiên làm việc này.
         </Typography>
       ) : (
         <List sx={{ p: 0 }}>
-          {history.map((item, index) => (
-            <ListItem 
-              key={index} 
-              disableGutters 
-              sx={{ 
-                // Viền dưới phân cách giữa các log đổi động
-                borderBottom: `1px solid ${theme.palette.customBg.border}`, 
-                py: 1 
-              }}
-            >
-              <ListItemText 
-                primary={`${item}`} 
-                secondary="➔ Đã lưu vào cơ sở dữ liệu thành công!"
-                slotProps={{
-                  primary: { 
-                    sx: { 
-                      // 🌟 ĐỘNG HÓA MÀU LOG CHÍNH: Light mode dùng xanh lá đậm, Dark mode dùng xanh lá tươi của bạn
-                      color: theme.palette.mode === 'light' ? '#2e7d32' : '#4caf50', 
-                      fontWeight: 'bold', 
-                      fontSize: '14px' 
-                    } 
-                  },
-                  secondary: { 
-                    sx: { 
-                      // 🌟 ĐỘNG HÓA MÀU CHỮ PHỤ: Light mode xanh lá vừa, Dark mode xanh lá nhạt
-                      color: theme.palette.mode === 'light' ? '#4caf50' : '#81c784', 
-                      fontSize: '12px' 
-                    } 
-                  }
+          {history.map((item, index) => {
+            const config = getLogColors(item); // Lấy bảng màu động theo nội dung log
+
+            return (
+              <ListItem 
+                key={index} 
+                disableGutters 
+                sx={{ 
+                  borderBottom: `1px solid ${theme.palette.customBg?.border || theme.palette.divider}`, 
+                  py: 1,
+                  '&:last-child': { borderBottom: 'none' } // Đẹp hơn khi log cuối không bị vạch kẻ cắt ngang
                 }}
-              />
-            </ListItem>
-          ))}
+              >
+                <ListItemText 
+                  primary={item} 
+                  secondary={config.statusText}
+                  slotProps={{
+                    primary: { 
+                      sx: { 
+                        color: config.primary, 
+                        fontWeight: 'bold', 
+                        fontSize: '14px' 
+                      } 
+                    },
+                    secondary: { 
+                      sx: { 
+                        color: config.secondary, 
+                        fontSize: '12px',
+                        mt: 0.5 
+                      } 
+                    }
+                  }}
+                />
+              </ListItem>
+            );
+          })}
         </List>
       )}
     </Paper>

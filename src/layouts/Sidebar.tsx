@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Drawer, Toolbar, Typography, Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Collapse, useTheme, alpha } from '@mui/material';
+import { Drawer, Toolbar, Typography, Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Collapse, useTheme, alpha, Avatar } from '@mui/material';
 import NoCrashIcon from '@mui/icons-material/NoCrash';
 import HistoryIcon from '@mui/icons-material/History';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -10,6 +10,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import GppGoodIcon from '@mui/icons-material/GppGood';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -36,22 +37,23 @@ export default function Sidebar({ open, drawerWidth }: SidebarProps) {
   };
 
   const menuItems = [
-    { text: 'Tổng Quan Camera', path: '/camera-overview', icon: <VideocamIcon sx={{ fontSize: 20 }} /> },
+    { text: 'Dữ Liệu Tổng Quan', path: '/dashboard', icon: <DashboardIcon sx={{ fontSize: 20 }} /> },
+    { text: 'Camera', path: '/camera-overview', icon: <VideocamIcon sx={{ fontSize: 20 }} /> },
     { text: 'Lịch Sử Ra Vào', path: '/log-history', icon: <HistoryIcon sx={{ fontSize: 20 }} /> },
     { text: 'Đăng Ký Xe', path: '/register-car', icon: <NoCrashIcon sx={{ fontSize: 20 }} /> },
     { text: 'Đăng Ký Người', path: '/people-register', icon: <DirectionsRunIcon sx={{ fontSize: 20 }} /> },
   ];
 
   const settingSubItems = [
-    { 
-      text: 'Quản lý Tài khoản', 
-      path: '/system-management/users-management', 
-      icon: <ManageAccountsIcon fontSize="small" /> 
+    {
+      text: 'Quản lý Tài khoản',
+      path: '/system-management/users-management',
+      icon: <ManageAccountsIcon fontSize="small" />
     },
-    { 
-      text: 'Phân quyền & Vai trò', 
-      path: '/system-management/permissions', 
-      icon: <GppGoodIcon fontSize="small" /> 
+    {
+      text: 'Phân quyền & Vai trò',
+      path: '/system-management/permissions',
+      icon: <GppGoodIcon fontSize="small" />
     },
   ];
 
@@ -79,11 +81,26 @@ export default function Sidebar({ open, drawerWidth }: SidebarProps) {
       }}
     >
       <Toolbar />
-      <Toolbar sx={{ justifyContent: 'flex-start', px: '20px !important', borderBottom: `1px solid ${theme.palette.customBg.border}`, minHeight: '48px !important' }}>
+      <Toolbar sx={{ justifyContent: 'flex-start', px: '20px !important', borderBottom: `1px solid ${theme.palette.customBg.border}`, minHeight: '48px !important', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar
+            sx={{
+              width: 32,
+              height: 32,
+              fontSize: '14px',
+              fontWeight: 'bold',
+              bgcolor: theme.palette.mode === 'light' ? theme.palette.primary.main : theme.palette.primary.dark,
+              color: theme.palette.primary.contrastText
+            }}
+          >
+            PA
+          </Avatar>
+        </Box>
         <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 700, letterSpacing: '1px' }}>
           HỆ THỐNG ĐIỀU HÀNH
         </Typography>
       </Toolbar>
+
 
       <Box sx={{ overflow: 'auto', mt: 1, flexGrow: 1 }}>
         <List sx={{ p: 0 }}>
@@ -104,7 +121,7 @@ export default function Sidebar({ open, drawerWidth }: SidebarProps) {
                       '&:hover': { bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.18) : alpha(theme.palette.primary.main, 0.1) },
                       '& .MuiListItemIcon-root': { color: theme.palette.primary.main }
                     },
-                    '&:hover': { 
+                    '&:hover': {
                       bgcolor: theme.palette.mode === 'dark' ? alpha('#ffffff', 0.04) : alpha('#000000', 0.04),
                       '& .MuiListItemIcon-root': { color: theme.palette.text.primary }
                     }
@@ -123,10 +140,10 @@ export default function Sidebar({ open, drawerWidth }: SidebarProps) {
           <ListItem disablePadding>
             <ListItemButton
               onClick={handleToggleSettings}
-              sx={{ 
+              sx={{
                 mx: 0.75, borderRadius: '4px', mb: 0.5, py: 1, px: 1.5, color: theme.palette.text.primary,
                 borderLeft: '3px solid transparent',
-                '&:hover': { bgcolor: theme.palette.mode === 'dark' ? alpha('#ffffff', 0.04) : alpha('#000000', 0.04) } 
+                '&:hover': { bgcolor: theme.palette.mode === 'dark' ? alpha('#ffffff', 0.04) : alpha('#000000', 0.04) }
               }}
             >
               <ListItemIcon sx={{ minWidth: '32px', color: theme.palette.text.secondary }}><SettingsIcon sx={{ fontSize: 20 }} /></ListItemIcon>
@@ -190,9 +207,9 @@ export default function Sidebar({ open, drawerWidth }: SidebarProps) {
               <ListItemIcon sx={{ minWidth: '32px', pl: 0.5, color: theme.palette.error.main }}>
                 <LogoutIcon sx={{ fontSize: 20 }} />
               </ListItemIcon>
-              <ListItemText 
-                primary="Đăng xuất" 
-                slotProps={{ primary: { sx: { fontSize: '13.5px', fontWeight: 600 } } }} 
+              <ListItemText
+                primary="Đăng xuất"
+                slotProps={{ primary: { sx: { fontSize: '13.5px', fontWeight: 600 } } }}
               />
             </ListItemButton>
           </ListItem>
