@@ -1,8 +1,8 @@
 export interface XitecLog {
-  id: string;          // Khớp với "id" từ API CCCD
-  name: string;        // Khớp với "name" từ API CCCD
-  birth?: string;      // Thêm trường ngày sinh nếu cần dùng
-  place?: string
+  id: string;
+  name: string;
+  birth?: string;
+  place?: string;
   nationalId: string;
   driverName: string;
   nationalIdImage: string;
@@ -10,8 +10,15 @@ export interface XitecLog {
   licensePlateImage: string;
   driverFaceImage: string;
   entryTime: string;
-}
+  
 
+  ticketId?: string;
+  ticket?: {
+    ticket_id: string;
+    ticket_code: string;
+    [key: string]: any;
+  };
+}
 
 export interface ApiResponseCCCD {
   status: string;

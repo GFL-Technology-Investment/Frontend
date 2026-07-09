@@ -111,6 +111,8 @@ export default function DriverIdentityModal({
       if (response.data?.status === "SUCCESS") {
         const ocrData = response.data.data;
         const linkedSession = response.data.linked_session;
+        const ticket = linkedSession?.ticket || response.data?.ticket || response.data?.data?.ticket;
+        const ticketId = ticket?.ticket_id || linkedSession?.ticket_id || response.data?.ticket_id || "";
 
         const updatedVehicleData: XitecLog = {
           id: ocrData?.id || "Không rõ",
@@ -123,6 +125,8 @@ export default function DriverIdentityModal({
           licensePlate: licensePlate || linkedSession?.expected_plate_number || "ĐÃ GẮN XE",
           licensePlateImage: `${API_BASE_URL}/static/media/live_plate.jpg`,
           driverFaceImage: ocrData?.cccd_face_image_url || "data:image/png;base64,...",
+          ticket,
+          ticketId,
           entryTime: linkedSession?.created_at
             ? new Date(linkedSession.created_at).toLocaleString("vi-VN")
             : new Date().toLocaleString("vi-VN"),
@@ -154,7 +158,7 @@ export default function DriverIdentityModal({
   return (
     <Dialog 
       open={open} 
-      onClose={personLoading ? undefined : onClose} // Chặn tắt modal khi đang xử lý
+      onClose={personLoading ? undefined : onClose} 
       fullWidth 
       maxWidth="sm"
     >

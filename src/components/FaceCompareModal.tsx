@@ -30,7 +30,7 @@ interface FaceCompareModalProps {
   onClose: () => void;
   vehicleData: XitecLog | null;
   eventUid: string;
-  onCompareSuccess: () => void;
+  onCompareSuccess: (matchedData?: any) => void;
   defaultLiveFace?: ImageState;
 }
 
@@ -115,11 +115,12 @@ export default function FaceCompareModal({
 
       setCompareResult(response.data);
       const compareInfo = response.data?.data?.compare || response.data?.compare;
+      const compareResultStatus = String(compareInfo?.result || "").trim().toUpperCase();
 
       // 🟢 ĐÃ SỬA LOGIC: Kiểm tra chính xác chuỗi kết quả trùng khớp nghiệp vụ sinh trắc học
-      if (compareInfo?.result === "MATCH") {
+      if (compareResultStatus === "MATCH") {
         showToast("Xác thực khuôn mặt trùng khớp thành công!", "success");
-        onCompareSuccess();
+        onCompareSuccess(response.data?.data || response.data);
       } else {
         // Trả thông báo lỗi màu đỏ khi kết quả là NO_MATCH hoặc các trạng thái không khớp khác
         showToast(

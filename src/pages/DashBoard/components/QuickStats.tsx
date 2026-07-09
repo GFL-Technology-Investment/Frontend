@@ -13,7 +13,7 @@ interface QuickStatsProps {
 
 export default function QuickStats({ isLoading, dynamicChartData, rfidSuccessRate, totalCheckedIn, totalCheckedOut }: QuickStatsProps) {
   return (
-    <Paper sx={{ p: 2, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}`, minHeight: 250 }}>
+    <Paper sx={{ p: 2, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}`, minHeight: 270 }}>
       <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
         <BarChartIcon fontSize="small" /> Thống kê nhanh
       </Typography>

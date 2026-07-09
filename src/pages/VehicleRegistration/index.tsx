@@ -4,7 +4,7 @@ import { Box, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import AppRegistrationIcon from "@mui/icons-material/AppRegistration";
 import { CheckCircleOutlined as CheckCircleOutlineIcon } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import CustomButton from "../../components/CustomButton";
 import CccdInfo from "../VehicleIn/components/CccdInfo";
@@ -15,7 +15,7 @@ import ToastNotification from "../../components/ToastNotification";
 import type { XitecLog } from "../../types/vehicle";
 import type { ToastState } from "../../components/ToastNotification";
 
-// Import các components và hooks đã tách ra
+
 import VehicleOwnerForm from "./components/VehicleOwnerForm";
 import VehicleInfoForm from "./components/VehicleInfoForm";
 import ActionButtons from "./components/ActionButton";
@@ -24,13 +24,13 @@ import { submitVehicleRegistration, checkVehicleInsideStatus } from "../../servi
 
 export default function VehicleRegistrationPage() {
   const theme = useTheme();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   // 1. Sử dụng Custom Hook quản lý ảnh
   const { images, refs, handleImageChange, handleRemoveImage, resetImages } = useVehicleImages();
 
-  // 2. State điều khiển luồng dữ liệu chính ở lại file cha
+  // 2. State điều khiển luồng dữ liệu chính - Định nghĩa chuẩn định dạng XitecLog
   const [vehicleData, setVehicleData] = useState<XitecLog | null>(null);
   const [eventUid, setEventUid] = useState<string>("");
   const [sessionStatus, setSessionStatus] = useState<string>("");
@@ -54,6 +54,20 @@ export default function VehicleRegistrationPage() {
     setToast({ open: true, message, severity });
   };
 
+  const extractTicketId = (data: any): string => {
+    return data?.ticketId ||
+      data?.ticket_id ||
+      data?.ticket?.ticket_id ||
+      data?.linked_session?.ticket?.ticket_id ||
+      data?.linkedSession?.ticket?.ticket_id ||
+      data?.session?.ticket?.ticket_id ||
+      data?.data?.ticketId ||
+      data?.data?.ticket_id ||
+      data?.data?.ticket?.ticket_id ||
+      data?.data?.linked_session?.ticket?.ticket_id ||
+      "";
+  };
+
   const handleTextChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -71,10 +85,14 @@ export default function VehicleRegistrationPage() {
     setErrors({ licensePlate: '' });
   };
 
+  const handlePrintSuccessCallback = (ticketCode: string) => {
+    showToast(`Cấp phát thành công thẻ kiểm soát định kỳ! Mã vé: ${ticketCode}`, "success");
+    handleBackToRegistration();
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // 1. Chuẩn hóa dữ liệu đầu vào
     const targetPlate = formData.licensePlate.trim().toUpperCase();
     if (!targetPlate) {
       setErrors({ licensePlate: "Biển số xe không được để trống!" });
@@ -89,30 +107,20 @@ export default function VehicleRegistrationPage() {
     try {
       setIsLoading(true);
 
-      // 🛑 CHỐT CHẶN TRIỆT ĐỂ: Gọi API đối soát danh sách lịch sử bãi xe
       console.log(`>>> [CHECKING PLATE]: Đang đối soát biển số: ${targetPlate}`);
       const isInside = await checkVehicleInsideStatus(targetPlate);
-      console.log(">>> GIÁ TRỊ IS_INSIDE FRONTEND NHẬN ĐƯỢC:", isInside);
 
-      // SỬA TẠI ĐÂY: Sử dụng kiểm tra truthy nới lỏng để bắt trúng mọi giá trị từ Service
       if (isInside) {
-        setIsLoading(false); // Giải phóng hiệu ứng nút bấm lập tức
-        
-        // Bắn toast lỗi đỏ nghiêm trọng lên màn hình bốt trực
+        setIsLoading(false);
         showToast(`LỖI: Xe ${targetPlate} hiện đang ở trong bến (Trạng thái: Chưa Checkout)! Không thể tiếp tục đăng ký.`, "error");
-        
-        // Khóa chặt các modal quét thẻ/CCCD để giao diện không đi tiếp luồng xử lý
-        setIsOpenPersonModal(false); 
-        
-        // Quay về trang quản lý overview sau khi hiển thị lỗi được 2 giây
+        setIsOpenPersonModal(false);
+
         setTimeout(() => {
           navigate("/camera-overview");
         }, 2000);
-        
-        return; // 🛑 KHÓA CỨNG LUỒNG: Tuyệt đối không cho phép chạy xuống API Đăng ký phía dưới
+        return;
       }
 
-      // 🟢 LUỒNG ĐĂNG KÝ HỢP LỆ (Chỉ chạy khi xe KHÔNG trùng trong bến)
       console.log(">>> [REGISTRATION]: Xe hợp lệ, tiến hành gửi dữ liệu lên AI Box...");
       const result = await submitVehicleRegistration(targetPlate, images, user?.organizationId);
 
@@ -127,13 +135,14 @@ export default function VehicleRegistrationPage() {
       setIsLoading(false);
       console.error(">>> [SUBMIT ERROR]:", error);
 
-      // Chốt chặn dự phòng nếu Backend trả lỗi trực tiếp trong quá trình gửi
       if (error.message?.includes("đang trong bến") || error.response?.data?.detail?.includes("already inside")) {
         showToast(`Từ chối: Xe ${targetPlate} đã có phiên chưa kết thúc trong bến!`, "error");
         setTimeout(() => navigate("/camera-overview"), 2000);
       } else {
         showToast(error.message || "Không thể kết nối đến máy chủ API bốt xe!", "error");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -185,9 +194,10 @@ export default function VehicleRegistrationPage() {
           <ActionButtons
             eventUid={eventUid}
             sessionStatus={sessionStatus}
+            ticketId={vehicleData.ticketId || vehicleData.ticket?.ticket_id || ""}
             onBack={handleBackToRegistration}
             onOpenCompare={() => setIsOpenCompareModal(true)}
-            onPrintSuccess={() => showToast("Cấp phát thẻ thành công!", "success")}
+            onPrintSuccess={handlePrintSuccessCallback}
           />
 
           <Typography variant="subtitle1" color="primary" sx={{ fontWeight: "bold", display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
@@ -196,10 +206,10 @@ export default function VehicleRegistrationPage() {
 
           <Box sx={{ display: "flex", gap: 2.5, flexWrap: "wrap" }}>
             <Box sx={{ flex: { xs: "1 1 100%", lg: "0 0 calc(33.33% - 16px)" } }}>
-              <CccdInfo data={vehicleData!} onUpdateField={(f, v) => setVehicleData((prev) => (prev ? { ...prev, [f]: v } : null))} />
+              <CccdInfo data={vehicleData} onUpdateField={(f, v) => setVehicleData((prev) => (prev ? { ...prev, [f]: v } : null))} />
             </Box>
             <Box sx={{ flex: { xs: "1 1 100%", lg: "1 1 calc(66.66% - 16px)" } }}>
-              <CameraInfo data={vehicleData!} />
+              <CameraInfo data={vehicleData} />
             </Box>
           </Box>
         </Box>
@@ -213,7 +223,19 @@ export default function VehicleRegistrationPage() {
         licensePlate={formData.licensePlate}
         ownerId={formData.ownerId}
         ownerName={formData.ownerName}
-        onOcrSuccess={(data, status) => { setVehicleData(data); setSessionStatus(status); }}
+        onOcrSuccess={(data: any, status: string) => {
+          // Kiểm tra tất cả các trường hợp có thể có của ticket_id từ API trả về
+          const extractedTicketId = extractTicketId(data);
+
+          console.log(">>> [DEBUG TICKET ID EXTRACTED]:", extractedTicketId);
+
+          const refinedData: XitecLog = {
+            ...data,
+            ticketId: extractedTicketId
+          };
+          setVehicleData(refinedData);
+          setSessionStatus(status);
+        }}
       />
 
       <FaceCompareModal
@@ -221,7 +243,20 @@ export default function VehicleRegistrationPage() {
         onClose={() => setIsOpenCompareModal(false)}
         vehicleData={vehicleData!}
         eventUid={eventUid}
-        onCompareSuccess={() => { setSessionStatus("SUCCESS_MATCH")}}
+        // Sửa lại nhận thêm data trả về từ kết quả đối sánh (nếu có)
+        onCompareSuccess={(matchedData?: any) => {
+          setSessionStatus("SUCCESS_MATCH");
+
+          // Nếu API compare trả ra data mới, bóc tách lại ticketId
+          if (matchedData) {
+            const finalTicketId = extractTicketId(matchedData) || vehicleData?.ticketId || vehicleData?.ticket?.ticket_id || "";
+            setVehicleData((prev: any) => ({
+              ...prev,
+              ...matchedData,
+              ticketId: finalTicketId
+            }));
+          }
+        }}
         defaultLiveFace={images.face.file ? images.face : undefined}
       />
 
