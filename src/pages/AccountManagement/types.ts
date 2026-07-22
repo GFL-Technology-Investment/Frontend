@@ -1,12 +1,16 @@
-export type UserRole = 'ADMIN' | 'MANAGER' | 'SECURITY_GUARD';
-
 export interface UserItem {
-  id: string;
-  username: string;
-  fullName: string;
+  user_id: string;
   email: string;
-  phoneNumber: string;
-  role: UserRole;
-  status: 'ACTIVE' | 'INACTIVE';
-  createdAt: string;
+  full_name: string;
+  organization_id: string;
+  is_active: boolean;
+  roles: string[];
+  permissions: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserListResponse {
+  total: number;
+  users: UserItem[];
 }
