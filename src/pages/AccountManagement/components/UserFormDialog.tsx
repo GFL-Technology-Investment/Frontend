@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Grid, TextField, MenuItem, Button, useTheme
+  Grid, TextField, MenuItem, Button, FormControlLabel,
+  Switch, useTheme
 } from '@mui/material';
 import type { UserItem } from '../types';
 
@@ -11,6 +12,7 @@ export interface UserFormData {
   full_name: string;
   organization_id: string;
   role_codes: string[];
+  is_active: boolean;
 }
 
 interface UserFormDialogProps {
@@ -22,8 +24,8 @@ interface UserFormDialogProps {
 
 const AVAILABLE_ROLES = ['ADMIN', 'GUARD', 'MANAGER', 'USER'];
 const AVAILABLE_ORGS = [
-  { id: 'org-001', label: 'HAN' },
-  { id: 'org-002', label: 'SGN' },
+  { id: 'org-001', label: 'HAN (org-001)' },
+  { id: 'org-002', label: 'SGN (org-002)' },
 ];
 
 const defaultFormState: UserFormData = {
@@ -31,7 +33,8 @@ const defaultFormState: UserFormData = {
   password: '',
   full_name: '',
   organization_id: 'org-001',
-  role_codes: ['GUARD']
+  role_codes: ['GUARD'],
+  is_active: true,
 };
 
 export default function UserFormDialog({ open, editUser, onClose, onSave }: UserFormDialogProps) {
@@ -48,17 +51,17 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
     if (editUser) {
       setFormData({
         email: editUser.email,
-        password: '', // Không hiển thị mật khẩu cũ
+        password: '', // Để trống nếu không muốn đổi mật khẩu
         full_name: editUser.full_name || '',
         organization_id: editUser.organization_id || 'org-001',
-        role_codes: editUser.roles?.length ? [editUser.roles[0]] : ['GUARD']
+        role_codes: editUser.roles?.length ? [editUser.roles[0]] : ['GUARD'],
+        is_active: editUser.is_active ?? true,
       });
     } else {
       setFormData(defaultFormState);
     }
   }, [editUser, open]);
 
-  // Handle kiểm tra mật khẩu
   const handlePasswordChange = (val: string) => {
     setFormData({ ...formData, password: val });
     if (val && val.length < 8) {
@@ -71,7 +74,7 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate mật khẩu trước khi gửi
+    // Validate mật khẩu tối thiểu 8 ký tự
     if (!editUser && (!formData.password || formData.password.length < 8)) {
       setPasswordError('Mật khẩu phải có tối thiểu 8 ký tự');
       return;
@@ -101,7 +104,7 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
       fullWidth
       slotProps={{ paper: { sx: { borderRadius: '12px' } } }}
     >
-      <DialogTitle sx={{ fontWeight: 700, borderBottom: `1px solid ${theme.palette.customBg?.border || theme.palette.divider}`, pb: 2 }}>
+      <DialogTitle sx={{ fontWeight: 700, borderBottom: `1px solid ${theme.palette.divider}`, pb: 2 }}>
         {editUser ? 'CẬP NHẬT THÔNG TIN TÀI KHOẢN' : 'TẠO MỚI TÀI KHOẢN NHÂN SỰ'}
       </DialogTitle>
 
@@ -134,7 +137,7 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
               />
             </Grid>
 
-            {/* Password (Validate tối thiểu 8 ký tự) */}
+            {/* Mật khẩu */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -152,7 +155,7 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
               />
             </Grid>
 
-            {/* Select Organization ID */}
+            {/* Tổ chức (HAN / SGN) */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -164,14 +167,14 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
               >
                 {AVAILABLE_ORGS.map((org) => (
                   <MenuItem key={org.id} value={org.id}>
-                    {org.label} ({org.id})
+                    {org.label}
                   </MenuItem>
                 ))}
               </TextField>
             </Grid>
 
-            {/* Select Role (Đơn) */}
-            <Grid size={{ xs: 12 }}>
+            {/* Vai trò (Role) */}
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 select
@@ -187,10 +190,24 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
                 ))}
               </TextField>
             </Grid>
+
+            {/* Trạng thái Hoạt động / Tạm khóa */}
+            <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.is_active}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                    color="success"
+                  />
+                }
+                label={formData.is_active ? 'Tài khoản: Hoạt động' : 'Tài khoản: Tạm khóa'}
+              />
+            </Grid>
           </Grid>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2.5, borderTop: `1px solid ${theme.palette.customBg?.border || theme.palette.divider}` }}>
+        <DialogActions sx={{ p: 2.5, borderTop: `1px solid ${theme.palette.divider}` }}>
           <Button onClick={onClose} variant="outlined" color="inherit" disabled={submitting} sx={{ borderRadius: '6px', textTransform: 'none', fontWeight: 'bold' }}>
             Hủy bỏ
           </Button>

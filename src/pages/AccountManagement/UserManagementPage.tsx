@@ -79,26 +79,41 @@ export default function UserManagementPage() {
   const handleSaveUser = async (formData: UserFormData) => {
     try {
       if (editUser) {
-        // TODO: Xử lý gọi API Update User nếu cần (PUT/PATCH /api/v1/user/{user_id})
-        console.log('Chức năng sửa user:', editUser.user_id, formData);
+        // 1. TRƯỜNG HỢP CẬP NHẬT (PUT /api/v1/user/{user_id})
+        const payload: Record<string, any> = {
+          email: formData.email,
+          full_name: formData.full_name,
+          organization_id: formData.organization_id,
+          role_codes: formData.role_codes,
+          is_active: formData.is_active,
+        };
+
+        // Chỉ truyền field password nếu người dùng có nhập mật khẩu mới
+        if (formData.password && formData.password.trim().length >= 8) {
+          payload.password = formData.password;
+        }
+
+        await axiosInstance.patch(`/api/v1/user/${editUser.user_id}`, payload);
       } else {
-        // Gọi API POST tạo user mới
+        // 2. TRƯỜNG HỢP TẠO MỚI (POST /api/v1/user)
         await axiosInstance.post('/api/v1/user', {
           email: formData.email,
           password: formData.password,
           full_name: formData.full_name,
           organization_id: formData.organization_id,
-          role_codes: formData.role_codes
+          role_codes: formData.role_codes,
+          is_active: formData.is_active,
         });
-
-        // Reload lại danh sách sau khi thêm thành công
-        await fetchUsers(page, rowsPerPage);
       }
+
+      // Đóng dialog & reload lại danh sách
+      setOpenFormDialog(false);
+      setEditUser(null);
+      await fetchUsers(page, rowsPerPage);
     } catch (err: any) {
-      console.error('Lỗi khi gọi API tạo tài khoản:', err);
-      const apiError = err.response?.data?.detail || 'Không thể tạo tài khoản, vui lòng thử lại!';
+      console.error('Lỗi khi lưu tài khoản:', err);
+      const apiError = err.response?.data?.detail || 'Không thể lưu thông tin tài khoản!';
       setErrorMsg(apiError);
-      throw new Error(apiError); // Throw lỗi để Dialog biết và giữ nguyên state
     }
   };
 
