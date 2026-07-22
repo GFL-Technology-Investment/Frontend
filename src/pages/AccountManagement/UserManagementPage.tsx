@@ -76,31 +76,30 @@ export default function UserManagementPage() {
   };
 
   // Handlers Thêm/Sửa & Xóa
-  const handleSaveUser = (formData: UserFormData) => {
-    if (editUser) {
-      setUsers(users.map(u => u.user_id === editUser.user_id ? {
-        ...u,
-        email: formData.email,
-        full_name: formData.full_name,
-        organization_id: formData.organization_id,
-        roles: [formData.role],
-        is_active: formData.is_active
-      } : u));
-    } else {
-      const newUser: UserItem = {
-        user_id: `user-${Date.now()}`,
-        email: formData.email,
-        full_name: formData.full_name,
-        organization_id: formData.organization_id,
-        is_active: formData.is_active,
-        roles: [formData.role],
-        permissions: [],
-        created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
-      };
-      setUsers([newUser, ...users]);
+  const handleSaveUser = async (formData: UserFormData) => {
+    try {
+      if (editUser) {
+        // TODO: Xử lý gọi API Update User nếu cần (PUT/PATCH /api/v1/user/{user_id})
+        console.log('Chức năng sửa user:', editUser.user_id, formData);
+      } else {
+        // Gọi API POST tạo user mới
+        await axiosInstance.post('/api/v1/user', {
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.full_name,
+          organization_id: formData.organization_id,
+          role_codes: formData.role_codes
+        });
+
+        // Reload lại danh sách sau khi thêm thành công
+        await fetchUsers(page, rowsPerPage);
+      }
+    } catch (err: any) {
+      console.error('Lỗi khi gọi API tạo tài khoản:', err);
+      const apiError = err.response?.data?.detail || 'Không thể tạo tài khoản, vui lòng thử lại!';
+      setErrorMsg(apiError);
+      throw new Error(apiError); // Throw lỗi để Dialog biết và giữ nguyên state
     }
-    setOpenFormDialog(false);
   };
 
   const handleConfirmDelete = () => {

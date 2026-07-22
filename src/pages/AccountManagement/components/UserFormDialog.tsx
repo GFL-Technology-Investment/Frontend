@@ -7,49 +7,90 @@ import type { UserItem } from '../types';
 
 export interface UserFormData {
   email: string;
+  password?: string;
   full_name: string;
   organization_id: string;
-  role: string;
-  is_active: boolean;
+  role_codes: string[];
 }
 
 interface UserFormDialogProps {
   open: boolean;
   editUser: UserItem | null;
   onClose: () => void;
-  onSave: (data: UserFormData) => void;
+  onSave: (data: UserFormData) => Promise<void>;
 }
+
+const AVAILABLE_ROLES = ['ADMIN', 'GUARD', 'MANAGER', 'USER'];
+const AVAILABLE_ORGS = [
+  { id: 'org-001', label: 'HAN' },
+  { id: 'org-002', label: 'SGN' },
+];
 
 const defaultFormState: UserFormData = {
   email: '',
+  password: '',
   full_name: '',
   organization_id: 'org-001',
-  role: 'GUARD',
-  is_active: true
+  role_codes: ['GUARD']
 };
 
 export default function UserFormDialog({ open, editUser, onClose, onSave }: UserFormDialogProps) {
   const theme = useTheme();
   const [formData, setFormData] = useState<UserFormData>(defaultFormState);
+  const [passwordError, setPasswordError] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
+
+  const selectedRole = formData.role_codes[0] || 'GUARD';
 
   // Sync dữ liệu khi bấm Sửa hoặc Tạo mới
   useEffect(() => {
+    setPasswordError('');
     if (editUser) {
       setFormData({
         email: editUser.email,
+        password: '', // Không hiển thị mật khẩu cũ
         full_name: editUser.full_name || '',
         organization_id: editUser.organization_id || 'org-001',
-        role: editUser.roles?.[0] || 'GUARD',
-        is_active: editUser.is_active
+        role_codes: editUser.roles?.length ? [editUser.roles[0]] : ['GUARD']
       });
     } else {
       setFormData(defaultFormState);
     }
   }, [editUser, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle kiểm tra mật khẩu
+  const handlePasswordChange = (val: string) => {
+    setFormData({ ...formData, password: val });
+    if (val && val.length < 8) {
+      setPasswordError('Mật khẩu phải có tối thiểu 8 ký tự');
+    } else {
+      setPasswordError('');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+
+    // Validate mật khẩu trước khi gửi
+    if (!editUser && (!formData.password || formData.password.length < 8)) {
+      setPasswordError('Mật khẩu phải có tối thiểu 8 ký tự');
+      return;
+    }
+
+    if (editUser && formData.password && formData.password.length < 8) {
+      setPasswordError('Mật khẩu mới phải có tối thiểu 8 ký tự');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await onSave(formData);
+      onClose();
+    } catch (err) {
+      console.error('Lỗi khi lưu tài khoản:', err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -63,10 +104,11 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
       <DialogTitle sx={{ fontWeight: 700, borderBottom: `1px solid ${theme.palette.customBg?.border || theme.palette.divider}`, pb: 2 }}>
         {editUser ? 'CẬP NHẬT THÔNG TIN TÀI KHOẢN' : 'TẠO MỚI TÀI KHOẢN NHÂN SỰ'}
       </DialogTitle>
-      
+
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ pt: 3 }}>
           <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
+            {/* Họ và tên */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -77,7 +119,8 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
               />
             </Grid>
-            
+
+            {/* Email */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -85,59 +128,74 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
                 size="small"
                 type="email"
                 required
+                disabled={Boolean(editUser)}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </Grid>
 
+            {/* Password (Validate tối thiểu 8 ký tự) */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
-                label="Mã Tổ chức (Organization ID)"
+                label={editUser ? 'Mật khẩu mới (Bỏ trống nếu không đổi)' : 'Mật khẩu'}
                 size="small"
-                required
-                value={formData.organization_id}
-                onChange={(e) => setFormData({ ...formData, organization_id: e.target.value })}
+                type="password"
+                required={!editUser}
+                value={formData.password}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                error={Boolean(passwordError)}
+                helperText={passwordError || (editUser ? '' : 'Tối thiểu 8 ký tự')}
+                slotProps={{
+                  htmlInput: { minLength: 8 }
+                }}
               />
             </Grid>
 
+            {/* Select Organization ID */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 select
-                label="Vai trò chính (Role)"
+                label="Mã Tổ chức (Organization ID)"
                 size="small"
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                value={formData.organization_id}
+                onChange={(e) => setFormData({ ...formData, organization_id: e.target.value })}
               >
-                <MenuItem value="ADMIN">ADMIN</MenuItem>
-                <MenuItem value="GUARD">GUARD</MenuItem>
-                <MenuItem value="MANAGER">MANAGER</MenuItem>
+                {AVAILABLE_ORGS.map((org) => (
+                  <MenuItem key={org.id} value={org.id}>
+                    {org.label} ({org.id})
+                  </MenuItem>
+                ))}
               </TextField>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            {/* Select Role (Đơn) */}
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 select
-                label="Trạng thái"
+                label="Vai trò (Role)"
                 size="small"
-                value={formData.is_active ? 'true' : 'false'}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'true' })}
+                value={selectedRole}
+                onChange={(e) => setFormData({ ...formData, role_codes: [e.target.value] })}
               >
-                <MenuItem value="true">Hoạt động</MenuItem>
-                <MenuItem value="false">Tạm khóa</MenuItem>
+                {AVAILABLE_ROLES.map((role) => (
+                  <MenuItem key={role} value={role}>
+                    {role}
+                  </MenuItem>
+                ))}
               </TextField>
             </Grid>
           </Grid>
         </DialogContent>
 
         <DialogActions sx={{ p: 2.5, borderTop: `1px solid ${theme.palette.customBg?.border || theme.palette.divider}` }}>
-          <Button onClick={onClose} variant="outlined" color="inherit" sx={{ borderRadius: '6px', textTransform: 'none', fontWeight: 'bold' }}>
+          <Button onClick={onClose} variant="outlined" color="inherit" disabled={submitting} sx={{ borderRadius: '6px', textTransform: 'none', fontWeight: 'bold' }}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="contained" sx={{ borderRadius: '6px', textTransform: 'none', fontWeight: 'bold', px: 3 }}>
-            Lưu thay đổi
+          <Button type="submit" variant="contained" loading={submitting} sx={{ borderRadius: '6px', textTransform: 'none', fontWeight: 'bold', px: 3 }}>
+            {editUser ? 'Lưu thay đổi' : 'Tạo tài khoản'}
           </Button>
         </DialogActions>
       </form>
