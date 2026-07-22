@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import NoCrashIcon from "@mui/icons-material/NoCrash";
 import HistoryIcon from "@mui/icons-material/History";
+import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import SettingsIcon from "@mui/icons-material/Settings";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import VideocamIcon from "@mui/icons-material/Videocam";
@@ -132,6 +133,11 @@ export default function Sidebar({ open, drawerWidth }: SidebarProps) {
       text: "Quản lý Tài khoản",
       path: "/system-management/users-management",
       icon: <ManageAccountsIcon fontSize="small" />,
+    },
+    {
+      text: "Quản lý tổ chức",
+      path: "/system-management/organizations-management",
+      icon: <CorporateFareIcon fontSize="small" />,
     },
     {
       text: "Phân quyền & Vai trò",

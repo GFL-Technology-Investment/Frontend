@@ -11,7 +11,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import axiosInstance from '../../configs/axios';
 import UserTable from './components/UserTable';
 import UserFormDialog, { type UserFormData } from './components/UserFormDialog';
-import ConfirmDeleteDialog from './components/ConfirmDeleteDialog';
+import ConfirmDeleteDialog from '../../components/ConfirmDeleteDialog';
 import type { UserItem, UserListResponse } from './types';
 
 export default function UserManagementPage() {

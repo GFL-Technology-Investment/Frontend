@@ -12,6 +12,7 @@ import VehicleOutPage from "../pages/VehicleOut";
 import LoginPage from "../pages/LoginPage/LoginPage";
 import SsoCallbackPage from "../pages/LoginPage/SsoCallbackPage";
 import ProtectedRoute from "../components/ProtectRoute";
+import OrganizationManagementPage from "../pages/Organizations/OrganizationManagementPage";
 
 export default function AppRoutes() {
   return (
@@ -42,6 +43,10 @@ export default function AppRoutes() {
         <Route
           path="/system-management/users-management"
           element={<UserManagementPage />}
+        />
+        <Route
+          path="/system-management/organizations-management"
+          element={<OrganizationManagementPage />}
         />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
