@@ -32,7 +32,7 @@ export default function UserManagementPage() {
   const [openFormDialog, setOpenFormDialog] = useState<boolean>(false);
   const [editUser, setEditUser] = useState<UserItem | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
   // Gọi API lấy danh sách User
   const fetchUsers = useCallback(async (currentPage: number, limit: number) => {
     setLoading(true);
@@ -102,10 +102,26 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleConfirmDelete = () => {
-    if (deleteTargetId) {
-      setUsers(users.filter(u => u.user_id !== deleteTargetId));
+  // Hàm xử lý xóa tài khoản khi xác nhận trên Dialog
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId) return;
+
+    setDeleteLoading(true);
+    try {
+      // Gọi API xóa user
+      await axiosInstance.delete(`/api/v1/user/${deleteTargetId}`);
+
+      // Đóng dialog
       setDeleteTargetId(null);
+
+      // Reload lại danh sách sau khi xóa thành công
+      await fetchUsers(page, rowsPerPage);
+    } catch (err: any) {
+      console.error('Lỗi khi xóa tài khoản:', err);
+      const apiError = err.response?.data?.detail || 'Không thể xóa tài khoản, vui lòng thử lại!';
+      setErrorMsg(apiError);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -212,6 +228,7 @@ export default function UserManagementPage() {
       <ConfirmDeleteDialog
         open={Boolean(deleteTargetId)}
         targetId={deleteTargetId}
+        loading={deleteLoading}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={handleConfirmDelete}
       />

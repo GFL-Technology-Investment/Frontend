@@ -16,13 +16,35 @@ interface UserTableProps {
 
 export default function UserTable({ users, loading, onEditClick, onDeleteClick }: UserTableProps) {
   const theme = useTheme();
+  // Hàm ánh xạ Organization ID sang tên hiển thị
+  const getOrgLabel = (orgId?: string) => {
+    switch (orgId) {
+      case 'org-001':
+        return 'HAN';
+      case 'org-002':
+        return 'SGN';
+      default:
+        return orgId || 'N/A';
+    }
+  };
 
+  // Hàm định màu sắc cho Chip Tổ chức (tùy chọn cho đẹp mắt)
+  const getOrgChipColor = (orgId?: string) => {
+    switch (orgId) {
+      case 'org-001':
+        return 'primary';
+      case 'org-002':
+        return 'secondary';
+      default:
+        return 'default';
+    }
+  };
   const getRoleChipColor = (role: string) => {
     switch (role) {
       case 'ADMIN':
         return 'error';
       case 'GUARD':
-        return 'success'; 
+        return 'success';
       case 'MANAGER':
         return 'warning';
       default:
@@ -94,9 +116,15 @@ export default function UserTable({ users, loading, onEditClick, onDeleteClick }
                 {/* Email */}
                 <TableCell sx={{ fontWeight: 500 }}>{user.email}</TableCell>
 
-                {/* Organization ID */}
+                {/* HIỂN THỊ TỔ CHỨC DƯỚI DẠNG CHIP (HAN / SGN) */}
                 <TableCell>
-                  <Chip label={user.organization_id} size="small" variant="outlined" />
+                  <Chip
+                    label={getOrgLabel(user.organization_id)}
+                    color={getOrgChipColor(user.organization_id) as any}
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontWeight: 'bold', borderRadius: '6px' }}
+                  />
                 </TableCell>
 
                 {/* Roles */}

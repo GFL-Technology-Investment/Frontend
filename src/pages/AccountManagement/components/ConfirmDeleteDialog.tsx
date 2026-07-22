@@ -6,17 +6,24 @@ import DeleteIcon from '@mui/icons-material/Delete';
 interface ConfirmDeleteDialogProps {
   open: boolean;
   targetId: string | null;
+  loading?: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
 }
 
-export default function ConfirmDeleteDialog({ open, targetId, onClose, onConfirm }: ConfirmDeleteDialogProps) {
+export default function ConfirmDeleteDialog({
+  open,
+  targetId,
+  loading = false,
+  onClose,
+  onConfirm
+}: ConfirmDeleteDialogProps) {
   const theme = useTheme();
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={loading ? undefined : onClose}
       maxWidth="xs"
       fullWidth
       slotProps={{ paper: { sx: { borderRadius: '16px', p: 1 } } }}
@@ -52,6 +59,7 @@ export default function ConfirmDeleteDialog({ open, targetId, onClose, onConfirm
           onClick={onClose}
           variant="outlined"
           color="inherit"
+          disabled={loading}
           sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
         >
           Hủy bỏ
@@ -60,6 +68,7 @@ export default function ConfirmDeleteDialog({ open, targetId, onClose, onConfirm
           onClick={onConfirm}
           variant="contained"
           color="error"
+          loading={loading}
           sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
         >
           Xóa ngay
