@@ -25,6 +25,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import GppGoodIcon from "@mui/icons-material/GppGood";
 import LogoutIcon from "@mui/icons-material/Logout";
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useAuth } from "../contexts/AuthContext";
 import axiosInstance from "../configs/axios";
 import { getDiscovery, type OidcProvider } from "../configs/oidcPkce";
@@ -138,6 +139,11 @@ export default function Sidebar({ open, drawerWidth }: SidebarProps) {
       text: "Quản lý tổ chức",
       path: "/system-management/organizations-management",
       icon: <CorporateFareIcon fontSize="small" />,
+    },
+    {
+      text: "Quản lý quyền",
+      path: "/system-management/roles-management",
+      icon: <AdminPanelSettingsIcon fontSize="small" />,
     },
     {
       text: "Phân quyền & Vai trò",
