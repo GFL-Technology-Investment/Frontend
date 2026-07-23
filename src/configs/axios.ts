@@ -179,7 +179,6 @@ axiosInstance.interceptors.response.use(
 
       const form = new FormData();
       form.append("refresh_token", refreshToken);
-
       const response = await axios.post(
         `${BASE_URL}/api/v1/auth/refresh`,
         form,
