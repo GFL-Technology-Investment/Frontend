@@ -47,19 +47,18 @@ const axiosInstance: AxiosInstance = axios.create({
 // Request interceptor — gắn access token vào mọi request
 // -----------------------------------------------------------------------
 
-axiosInstance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const accessToken =
-      localStorage.getItem("access_token") || localStorage.getItem("token");
+axiosInstance.interceptors.request.use((config) => {
+    console.log("Before interceptor:", config.headers.Authorization);
 
-    if (accessToken && config.headers) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    if (!config.headers.Authorization) {
+        const token = localStorage.getItem("access_token");
+        config.headers.Authorization = `Bearer ${token}`;
     }
 
+    console.log("After interceptor:", config.headers.Authorization);
+
     return config;
-  },
-  (error) => Promise.reject(error),
-);
+});
 
 // -----------------------------------------------------------------------
 // Response interceptor — tự động refresh khi gặp 401
