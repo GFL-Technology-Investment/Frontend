@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import NoCrashIcon from "@mui/icons-material/NoCrash";
 import HistoryIcon from "@mui/icons-material/History";
+import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import SettingsIcon from "@mui/icons-material/Settings";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import VideocamIcon from "@mui/icons-material/Videocam";
@@ -24,6 +25,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import GppGoodIcon from "@mui/icons-material/GppGood";
 import LogoutIcon from "@mui/icons-material/Logout";
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useAuth } from "../contexts/AuthContext";
 import axiosInstance from "../configs/axios";
 import { getDiscovery, type OidcProvider } from "../configs/oidcPkce";
@@ -132,6 +134,16 @@ export default function Sidebar({ open, drawerWidth }: SidebarProps) {
       text: "Quản lý Tài khoản",
       path: "/system-management/users-management",
       icon: <ManageAccountsIcon fontSize="small" />,
+    },
+    {
+      text: "Quản lý tổ chức",
+      path: "/system-management/organizations-management",
+      icon: <CorporateFareIcon fontSize="small" />,
+    },
+    {
+      text: "Quản lý quyền",
+      path: "/system-management/roles-management",
+      icon: <AdminPanelSettingsIcon fontSize="small" />,
     },
     {
       text: "Phân quyền & Vai trò",
