@@ -32,7 +32,7 @@ export default function LoginPage() {
   const theme = useTheme();
   const { login } = useAuth();
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -42,8 +42,8 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username || !password) {
-      setError("Vui lòng nhập đầy đủ tài khoản và mật khẩu.");
+    if (!email || !password) {
+      setError("Vui lòng nhập đầy đủ email và mật khẩu.");
       return;
     }
 
@@ -52,9 +52,9 @@ export default function LoginPage() {
       setError(null);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/dev-login`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/login`,
         {
-          username,
+          email,
           password,
         },
       );
@@ -69,7 +69,7 @@ export default function LoginPage() {
         }
 
         login(response.data.access_token, {
-          username: apiUser?.username || apiUser?.email || username,
+          username: apiUser?.email || email,
           role: apiUser?.roles?.[0] || "guard",
           organizationId: apiUser?.organization_id || "",
         });
@@ -212,10 +212,10 @@ export default function LoginPage() {
             <TextField
               fullWidth
               required
-              label="Username"
-              value={username}
+              label="Email"
+              value={email}
               disabled={loading}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               sx={{ mb: 2 }}
             />
 
