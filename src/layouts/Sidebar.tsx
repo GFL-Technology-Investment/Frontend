@@ -24,6 +24,7 @@ import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import GppGoodIcon from "@mui/icons-material/GppGood";
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import LogoutIcon from "@mui/icons-material/Logout";
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useAuth } from "../contexts/AuthContext";
@@ -108,7 +109,12 @@ export default function Sidebar({ open, drawerWidth }: SidebarProps) {
 
   const menuItems = [
     {
-      text: "Tổng Quan Camera",
+      text: 'Dữ Liệu Tổng Quan',
+      path: '/dashboard',
+      icon: <DashboardIcon sx={{ fontSize: 20 }} />
+    },
+    {
+      text: "Camera",
       path: "/camera-overview",
       icon: <VideocamIcon sx={{ fontSize: 20 }} />,
     },

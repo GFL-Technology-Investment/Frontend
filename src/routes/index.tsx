@@ -14,6 +14,8 @@ import ProtectedRoute from "../components/ProtectRoute";
 import OrganizationManagementPage from "../pages/Organizations/OrganizationManagementPage";
 import RoleManagementPage from "../pages/Roles/RoleManagementPage";
 import RolePermissionPage from "../pages/Permission/PermissionPage";
+import DashboardPage from "../pages/Dashboard/DashboardPage";
+
 
 export default function AppRoutes() {
   return (
@@ -32,6 +34,7 @@ export default function AppRoutes() {
       >
         <Route path="/" element={<Navigate to="/camera-overview" replace />} />
         <Route path="/camera-overview" element={<CameraOverviewPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/log-history" element={<HistoryLogPage />} />
         <Route path="/vehicle-in" element={<VehicleInPage />} />
         <Route path="/vehicle-out" element={<VehicleOutPage />} />
