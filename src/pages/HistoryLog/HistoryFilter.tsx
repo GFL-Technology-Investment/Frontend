@@ -30,11 +30,11 @@ export default function HistoryFilter({
       elevation={0} 
       sx={{ 
         p: 2, 
-        mb: 2, // Giảm margin-bottom từ 4 xuống 2 để khít với bảng dữ liệu
+        mb: 2,
         bgcolor: theme.palette.customBg.card, 
         border: `1px solid ${theme.palette.customBg.border}`, 
-        borderRadius: '4px', // Đồng bộ vuông vức chuẩn Enterprise
-        boxShadow: 'none' // Loại bỏ shadow đổ bóng đổ rườm rà
+        borderRadius: '4px',
+        boxShadow: 'none'
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>

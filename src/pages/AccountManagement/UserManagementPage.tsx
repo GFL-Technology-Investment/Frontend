@@ -79,7 +79,7 @@ export default function UserManagementPage() {
   const handleSaveUser = async (formData: UserFormData) => {
     try {
       if (editUser) {
-        // 1. TRƯỜNG HỢP CẬP NHẬT (PUT /api/v1/user/{user_id})
+        // 1. TRƯỜNG HỢP CẬP NHẬT (PATCH /api/v1/user/{user_id})
         const payload: Record<string, any> = {
           email: formData.email,
           full_name: formData.full_name,
