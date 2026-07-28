@@ -61,18 +61,14 @@ export default function LoginPage() {
 
       if (response.data?.access_token) {
         localStorage.setItem("access_token", response.data.access_token);
-        const apiUser = response.data.user;
         const apiCamera = response.data.camera;
 
         if (response.data.refresh_token) {
           localStorage.setItem("refresh_token", response.data.refresh_token);
         }
 
-        login(response.data.access_token, {
-          username: apiUser?.email || email,
-          role: apiUser?.roles?.[0] || "guard",
-          organizationId: apiUser?.organization_id || "",
-        });
+        // SỬA TẠI ĐÂY: Truyền toàn bộ response.data vào login() để AuthContext tự bóc tách user & permissions
+        login(response.data.access_token, response.data);
 
         if (apiCamera?.camera_token) {
           localStorage.setItem("camera_token", apiCamera.camera_token);

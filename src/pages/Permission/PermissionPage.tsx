@@ -27,6 +27,17 @@ export default function RolePermissionPage() {
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [successMsg, setSuccessMsg] = useState<string>('');
 
+  // Tự động ẩn thông báo thành công sau 3 giây
+  useEffect(() => {
+    if (successMsg) {
+      const timer = setTimeout(() => {
+        setSuccessMsg('');
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [successMsg]);
+
   // 1. Tải danh sách Roles & Permissions ban đầu
   useEffect(() => {
     const initData = async () => {
@@ -66,11 +77,9 @@ export default function RolePermissionPage() {
       setErrorMsg('');
       setSuccessMsg('');
       try {
-        // Thay đổi sang API /api/v1/roles/{role_id}
         const response = await axiosInstance.get(`/api/v1/roles/${selectedRoleId}`);
         const assignedCodes: string[] = response.data.permission_codes || [];
         
-        // Lưu trữ dưới dạng Set các permission_code
         setSelectedPermissionCodes(new Set(assignedCodes));
       } catch (err: any) {
         console.error('Lỗi lấy quyền của vai trò:', err);
@@ -129,11 +138,10 @@ export default function RolePermissionPage() {
     setSuccessMsg('');
 
     try {
-      // Tùy theo định dạng Backend nhận (permission_codes hoặc permission_ids)
       const payloadArray = Array.from(selectedPermissionCodes);
       
       await axiosInstance.put(`/api/v1/roles/${selectedRoleId}/permissions`, {
-        permission_codes: payloadArray, // hoặc permission_ids tùy thuộc vào API Save của bạn
+        permission_codes: payloadArray,
       });
       setSuccessMsg('Cập nhật phân quyền thành công!');
     } catch (err: any) {
@@ -281,7 +289,6 @@ export default function RolePermissionPage() {
               ) : (
                 <Stack spacing={3}>
                   {Object.entries(groupedPermissions).map(([moduleName, modulePerms]) => {
-                    // Lấy mã key để so sánh (ưu tiên permission_code)
                     const moduleKeys = modulePerms.map((p) => p.permission_code || p.permission_id);
                     const checkedCount = moduleKeys.filter((key) => selectedPermissionCodes.has(key)).length;
                     const isAllChecked = checkedCount === modulePerms.length && modulePerms.length > 0;
@@ -322,7 +329,6 @@ export default function RolePermissionPage() {
                         {/* Danh sách Checkbox Quyền */}
                         <Grid container spacing={1.5}>
                           {modulePerms.map((perm) => {
-                            // Key dùng để xác định xem quyền này đã được tick chưa
                             const targetKey = perm.permission_code || perm.permission_id;
                             const isChecked = selectedPermissionCodes.has(targetKey);
 

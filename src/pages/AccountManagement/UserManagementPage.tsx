@@ -13,7 +13,7 @@ import UserTable from './components/UserTable';
 import UserFormDialog, { type UserFormData } from './components/UserFormDialog';
 import ConfirmDeleteDialog from '../../components/ConfirmDeleteDialog';
 import type { UserItem, UserListResponse } from './types';
-
+import { Can } from '../../components/common/can';
 export default function UserManagementPage() {
   const theme = useTheme();
 
@@ -169,14 +169,17 @@ export default function UserManagementPage() {
           >
             Làm mới
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleOpenAdd}
-            sx={{ borderRadius: '8px', fontWeight: 'bold', textTransform: 'none', px: 3 }}
-          >
-            Tạo tài khoản
-          </Button>
+          {/* CHỈ HIỂN THỊ NÚT TẠO TÀI KHOẢN KHI CÓ QUYỀN system.user.create */}
+          <Can perform="system.user.create">
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleOpenAdd}
+              sx={{ borderRadius: '8px', fontWeight: 'bold', textTransform: 'none', px: 3 }}
+            >
+              Tạo tài khoản
+            </Button>
+          </Can>
         </Box>
       </Box>
 
