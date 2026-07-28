@@ -13,7 +13,7 @@ import UserTable from './components/UserTable';
 import UserFormDialog, { type UserFormData } from './components/UserFormDialog';
 import ConfirmDeleteDialog from '../../components/ConfirmDeleteDialog';
 import type { UserItem, UserListResponse } from './types';
-import { Can } from '../../components/common/can';
+import { Can } from '../../components/common/Can';
 export default function UserManagementPage() {
   const theme = useTheme();
 
