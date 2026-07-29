@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Grid, TextField, MenuItem, Button, FormControlLabel,
-  Switch, useTheme
+  Switch, useTheme, CircularProgress
 } from '@mui/material';
 import type { UserItem } from '../types';
 
@@ -18,49 +18,62 @@ export interface UserFormData {
 interface UserFormDialogProps {
   open: boolean;
   editUser: UserItem | null;
+  rolesList: string[];            // <--- Thêm prop
+  loadingRoles?: boolean;         // <--- Thêm prop
   onClose: () => void;
   onSave: (data: UserFormData) => Promise<void>;
 }
 
-const AVAILABLE_ROLES = ['ADMIN', 'GUARD', 'MANAGER', 'USER'];
 const AVAILABLE_ORGS = [
   { id: 'org-001', label: 'HAN (org-001)' },
   { id: 'org-002', label: 'SGN (org-002)' },
 ];
 
-const defaultFormState: UserFormData = {
-  email: '',
-  password: '',
-  full_name: '',
-  organization_id: 'org-001',
-  role_codes: ['GUARD'],
-  is_active: true,
-};
-
-export default function UserFormDialog({ open, editUser, onClose, onSave }: UserFormDialogProps) {
+export default function UserFormDialog({
+  open,
+  editUser,
+  rolesList,
+  loadingRoles = false,
+  onClose,
+  onSave,
+}: UserFormDialogProps) {
   const theme = useTheme();
+
+  const defaultRole = rolesList[0] || 'GUARD';
+  const defaultFormState: UserFormData = {
+    email: '',
+    password: '',
+    full_name: '',
+    organization_id: 'org-001',
+    role_codes: [defaultRole],
+    is_active: true,
+  };
+
   const [formData, setFormData] = useState<UserFormData>(defaultFormState);
   const [passwordError, setPasswordError] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const selectedRole = formData.role_codes[0] || 'GUARD';
-
-  // Sync dữ liệu khi bấm Sửa hoặc Tạo mới
+  // Sync dữ liệu Form khi editUser hoặc rolesList thay đổi
   useEffect(() => {
     setPasswordError('');
     if (editUser) {
       setFormData({
         email: editUser.email,
-        password: '', // Để trống nếu không muốn đổi mật khẩu
+        password: '',
         full_name: editUser.full_name || '',
         organization_id: editUser.organization_id || 'org-001',
-        role_codes: editUser.roles?.length ? [editUser.roles[0]] : ['GUARD'],
+        role_codes: editUser.roles?.length ? [editUser.roles[0]] : [rolesList[0] || 'GUARD'],
         is_active: editUser.is_active ?? true,
       });
     } else {
-      setFormData(defaultFormState);
+      setFormData({
+        ...defaultFormState,
+        role_codes: [rolesList[0] || 'GUARD'],
+      });
     }
-  }, [editUser, open]);
+  }, [editUser, open, rolesList]);
+
+  const selectedRole = formData.role_codes[0] || rolesList[0] || 'GUARD';
 
   const handlePasswordChange = (val: string) => {
     setFormData({ ...formData, password: val });
@@ -74,7 +87,6 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate mật khẩu tối thiểu 8 ký tự
     if (!editUser && (!formData.password || formData.password.length < 8)) {
       setPasswordError('Mật khẩu phải có tối thiểu 8 ký tự');
       return;
@@ -111,7 +123,6 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ pt: 3 }}>
           <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-            {/* Họ và tên */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -123,7 +134,6 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
               />
             </Grid>
 
-            {/* Email */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -137,7 +147,6 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
               />
             </Grid>
 
-            {/* Mật khẩu */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -149,13 +158,10 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
                 onChange={(e) => handlePasswordChange(e.target.value)}
                 error={Boolean(passwordError)}
                 helperText={passwordError || (editUser ? '' : 'Tối thiểu 8 ký tự')}
-                slotProps={{
-                  htmlInput: { minLength: 8 }
-                }}
+                slotProps={{ htmlInput: { minLength: 8 } }}
               />
             </Grid>
 
-            {/* Tổ chức (HAN / SGN) */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -173,7 +179,7 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
               </TextField>
             </Grid>
 
-            {/* Vai trò (Role) */}
+            {/* Select Role dynamic từ props */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -181,9 +187,15 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
                 label="Vai trò (Role)"
                 size="small"
                 value={selectedRole}
+                disabled={loadingRoles}
                 onChange={(e) => setFormData({ ...formData, role_codes: [e.target.value] })}
+                slotProps={{
+                  select: {
+                    IconComponent: loadingRoles ? () => <CircularProgress size={18} sx={{ mr: 1 }} /> : undefined
+                  }
+                }}
               >
-                {AVAILABLE_ROLES.map((role) => (
+                {rolesList.map((role) => (
                   <MenuItem key={role} value={role}>
                     {role}
                   </MenuItem>
@@ -191,7 +203,6 @@ export default function UserFormDialog({ open, editUser, onClose, onSave }: User
               </TextField>
             </Grid>
 
-            {/* Trạng thái Hoạt động / Tạm khóa */}
             <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
               <FormControlLabel
                 control={

@@ -33,6 +33,40 @@ export default function UserManagementPage() {
   const [editUser, setEditUser] = useState<UserItem | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+
+
+  // 1. Thêm State lưu Roles tại Page
+  const [rolesList, setRolesList] = useState<string[]>(['ADMIN', 'GUARD', 'MANAGER']);
+  const [loadingRoles, setLoadingRoles] = useState<boolean>(false);
+
+  // 2. Fetch danh sách Roles ngay khi vào trang
+// Fetch danh sách Roles từ API
+  const fetchRoles = useCallback(async () => {
+    setLoadingRoles(true);
+    try {
+      const response = await axiosInstance.get('/api/v1/roles');
+      
+      // Đọc trực tiếp từ response.data.roles
+      const rolesData = response.data?.roles;
+
+      if (Array.isArray(rolesData)) {
+        const extractedCodes = rolesData
+          .map((item: any) => item.role_code)
+          .filter(Boolean);
+
+        setRolesList(extractedCodes);
+      }
+    } catch (err) {
+      console.error('Không thể lấy danh sách roles:', err);
+    } finally {
+      setLoadingRoles(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
+
   // Gọi API lấy danh sách User
   const fetchUsers = useCallback(async (currentPage: number, limit: number) => {
     setLoading(true);
@@ -79,7 +113,7 @@ export default function UserManagementPage() {
   const handleSaveUser = async (formData: UserFormData) => {
     try {
       if (editUser) {
-        // 1. TRƯỜNG HỢP CẬP NHẬT (PATCH /api/v1/user/{user_id})
+        // 1. TRƯỜNG HỢP CẬP NHẬT (PATCH /api/v1/user/{user_id}/roles)
         const payload: Record<string, any> = {
           email: formData.email,
           full_name: formData.full_name,
@@ -93,7 +127,7 @@ export default function UserManagementPage() {
           payload.password = formData.password;
         }
 
-        await axiosInstance.patch(`/api/v1/user/${editUser.user_id}`, payload);
+        await axiosInstance.put(`/api/v1/user/${editUser.user_id}/roles`, payload);
       } else {
         // 2. TRƯỜNG HỢP TẠO MỚI (POST /api/v1/user)
         await axiosInstance.post('/api/v1/user', {
@@ -236,6 +270,8 @@ export default function UserManagementPage() {
 
       {/* FORM DIALOG (THÊM / SỬA) */}
       <UserFormDialog
+        rolesList={rolesList}
+        loadingRoles={loadingRoles}
         open={openFormDialog}
         editUser={editUser}
         onClose={() => setOpenFormDialog(false)}
