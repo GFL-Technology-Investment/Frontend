@@ -6,11 +6,13 @@ import {
   CircularProgress,
   useTheme,
   IconButton,
+  Alert,
 } from "@mui/material";
 import PrintIcon from "@mui/icons-material/Print";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import LockPatternIcon from "@mui/icons-material/Lock"; // Import thêm icon cảnh báo
 import { useNavigate } from "react-router-dom";
 
 import type { XitecLog } from "../../types/vehicle";
@@ -23,6 +25,7 @@ import axiosInstance from "../../configs/axios";
 import ToastNotification, {
   type ToastState,
 } from "../../components/ToastNotification";
+import {Can} from "../../components/common/Can";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "");
 
@@ -263,164 +266,187 @@ export default function VehicleInPage() {
   };
 
   return (
-    <Box
-      sx={{
-        bgcolor: theme.palette.background.default, // Chuẩn hóa Token hệ thống
-        minHeight: "100vh",
-        p: { xs: 2, sm: 3 },
-      }}
+    <Can
+      perform="vehicle.approve"
+      fallback={
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "80vh",
+            p: 3,
+          }}
+        >
+          <Alert severity="error" icon={<LockPatternIcon fontSize="large" />}>
+            <Typography variant="h6">Truy cập bị từ chối</Typography>
+            <Typography variant="body2">
+              Bạn không có quyền thực hiện chức năng này. Vui lòng liên hệ quản trị viên.
+            </Typography>
+          </Alert>
+        </Box>
+      }
     >
-      {/* KHU VỰC HEADER ĐIỀU HƯỚNG */}
       <Box
         sx={{
-          mb: 4,
-          p: 2,
-          borderBottom: `1px solid ${theme.palette.divider}`, // Chuẩn hóa Token hệ thống
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          alignItems: { xs: "stretch", sm: "center" },
-          justifyContent: "space-between",
-          gap: 2,
+          bgcolor: theme.palette.background.default, // Chuẩn hóa Token hệ thống
+          minHeight: "100vh",
+          p: { xs: 2, sm: 3 },
         }}
       >
-        <Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <IconButton
-              onClick={() => navigate("/camera-overview")}
-              sx={{
-                color: theme.palette.primary.main,
-                border: `1px solid ${theme.palette.divider}`,
-              }}
+        {/* KHU VỰC HEADER ĐIỀU HƯỚNG */}
+        <Box
+          sx={{
+            mb: 4,
+            p: 2,
+            borderBottom: `1px solid ${theme.palette.divider}`, // Chuẩn hóa Token hệ thống
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "stretch", sm: "center" },
+            justifyContent: "space-between",
+            gap: 2,
+          }}
+        >
+          <Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <IconButton
+                onClick={() => navigate("/camera-overview")}
+                sx={{
+                  color: theme.palette.primary.main,
+                  border: `1px solid ${theme.palette.divider}`,
+                }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography
+                variant="h5"
+                component="h1"
+                sx={{
+                  color: theme.palette.primary.main,
+                  fontWeight: "bold",
+                  fontSize: { xs: "1.2rem", sm: "1.5rem" },
+                }}
+              >
+                CỔNG VÀO: ĐỊNH DANH TÀI XẾ
+              </Typography>
+            </Box>
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, ml: 6 }}
             >
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography
-              variant="h5"
-              component="h1"
-              sx={{
-                color: theme.palette.primary.main,
-                fontWeight: "bold",
-                fontSize: { xs: "1.2rem", sm: "1.5rem" },
-              }}
-            >
-              CỔNG VÀO: ĐỊNH DANH TÀI XẾ
-            </Typography>
+              {isLoading && <CircularProgress size={14} />}
+              <Typography
+                variant="caption"
+                sx={{ color: theme.palette.text.secondary }}
+              >
+                {sessionStatus
+                  ? `Tiến trình: ${sessionStatus}`
+                  : "Hệ thống đang sẵn sàng, chờ quét hoặc tải tệp ảnh CCCD..."}
+              </Typography>
+            </Box>
           </Box>
-          <Box
-            sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, ml: 6 }}
-          >
-            {isLoading && <CircularProgress size={14} />}
+
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+              disabled={isLoading}
+            />
+            <CustomButton
+              variant="contained"
+              startIcon={<AddPhotoAlternateIcon />}
+              onClick={() => fileInputRef.current?.click()}
+              isLoading={isLoading}
+              fullWidth
+            >
+              ĐĂNG KÝ NGƯỜI (CCCD)
+            </CustomButton>
+          </Box>
+        </Box>
+
+        {/* KHU VỰC HIỂN THỊ NỘI DUNG CHÍNH */}
+        {!vehicleData ? (
+          <Box sx={{ textAlign: "center", py: 10 }}>
             <Typography
-              variant="caption"
+              variant="body1"
               sx={{ color: theme.palette.text.secondary }}
             >
-              {sessionStatus
-                ? `Tiến trình: ${sessionStatus}`
-                : "Hệ thống đang sẵn sàng, chờ quét hoặc tải tệp ảnh CCCD..."}
+              Hiện tại chưa có hồ sơ. Vui lòng nhấn nút{" "}
+              <b>"Đăng ký người (CCCD)"</b> để tiến hành trích xuất dữ liệu.
             </Typography>
           </Box>
-        </Box>
-
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: "none" }}
-            onChange={handleFileChange}
-            disabled={isLoading}
-          />
-          <CustomButton
-            variant="contained"
-            startIcon={<AddPhotoAlternateIcon />}
-            onClick={() => fileInputRef.current?.click()}
-            isLoading={isLoading}
-            fullWidth
-          >
-            ĐĂNG KÝ NGƯỜI (CCCD)
-          </CustomButton>
-        </Box>
-      </Box>
-
-      {/* KHU VỰC HIỂN THỊ NỘI DUNG CHÍNH */}
-      {!vehicleData ? (
-        <Box sx={{ textAlign: "center", py: 10 }}>
-          <Typography
-            variant="body1"
-            sx={{ color: theme.palette.text.secondary }}
-          >
-            Hiện tại chưa có hồ sơ. Vui lòng nhấn nút{" "}
-            <b>"Đăng ký người (CCCD)"</b> để tiến hành trích xuất dữ liệu.
-          </Typography>
-        </Box>
-      ) : (
-        <Box>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-            <Box
-              sx={{ flex: { xs: "1 1 100%", lg: "0 0 calc(33.33% - 16px)" } }}
-            >
-              <CccdInfo
-                data={vehicleData}
-                onUpdateField={handleUpdateVehicleField}
-              />
+        ) : (
+          <Box>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+              <Box
+                sx={{ flex: { xs: "1 1 100%", lg: "0 0 calc(33.33% - 16px)" } }}
+              >
+                <CccdInfo
+                  data={vehicleData}
+                  onUpdateField={handleUpdateVehicleField}
+                />
+              </Box>
+              <Box
+                sx={{ flex: { xs: "1 1 100%", lg: "1 1 calc(66.66% - 16px)" } }}
+              >
+                <CameraInfo data={vehicleData} />
+              </Box>
             </Box>
+
+            {/* THANH THAO TÁC XÁC THỰC LỆNH */}
             <Box
-              sx={{ flex: { xs: "1 1 100%", lg: "1 1 calc(66.66% - 16px)" } }}
+              sx={{ display: "flex", justifyContent: "flex-end", mt: 3, gap: 2 }}
             >
-              <CameraInfo data={vehicleData} />
+              <CustomButton
+                variant="contained"
+                size="large"
+                color="secondary"
+                startIcon={<VerifiedUserIcon />}
+                onClick={() => setIsOpenCompareModal(true)}
+                disabled={!eventUid || isLoading}
+              >
+                XÁC THỰC KHUÔN MẶT
+              </CustomButton>
+              <CustomButton
+                variant="contained"
+                size="large"
+                color="success"
+                startIcon={<PrintIcon />}
+                onClick={handlePrintCard}
+                disabled={
+                  sessionStatus !== "SUCCESS_MATCH" || isLoading || isPrinting
+                }
+                isLoading={isPrinting}
+              >
+                XÁC NHẬN & IN THẺ VÀO
+              </CustomButton>
             </Box>
           </Box>
+        )}
 
-          {/* THANH THAO TÁC XÁC THỰC LỆNH */}
-          <Box
-            sx={{ display: "flex", justifyContent: "flex-end", mt: 3, gap: 2 }}
-          >
-            <CustomButton
-              variant="contained"
-              size="large"
-              color="secondary"
-              startIcon={<VerifiedUserIcon />}
-              onClick={() => setIsOpenCompareModal(true)}
-              disabled={!eventUid || isLoading}
-            >
-              XÁC THỰC KHUÔN MẶT
-            </CustomButton>
-            <CustomButton
-              variant="contained"
-              size="large"
-              color="success"
-              startIcon={<PrintIcon />}
-              onClick={handlePrintCard}
-              disabled={
-                sessionStatus !== "SUCCESS_MATCH" || isLoading || isPrinting
-              }
-              isLoading={isPrinting}
-            >
-              XÁC NHẬN & IN THẺ VÀO
-            </CustomButton>
-          </Box>
+        {/* NHẬT KÝ IN ẤN HỆ THỐNG TRONG PHIÊN */}
+        <Box sx={{ mt: 3 }}>
+          <HistoryLog history={printHistory} />
         </Box>
-      )}
 
-      {/* NHẬT KÝ IN ẤN HỆ THỐNG TRONG PHIÊN */}
-      <Box sx={{ mt: 3 }}>
-        <HistoryLog history={printHistory} />
+        {/* COMPONENT ĐỐI SÁNH TRỰC QUAN */}
+        <FaceCompareModal
+          open={isOpenCompareModal}
+          onClose={() => setIsOpenCompareModal(false)}
+          vehicleData={vehicleData}
+          eventUid={eventUid}
+          onCompareSuccess={() => setSessionStatus("SUCCESS_MATCH")}
+        />
+
+        {/* TOAST THÔNG BÁO TRẠNG THÁI TOÀN CỤC */}
+        <ToastNotification
+          toast={toast}
+          onClose={() => setToast({ ...toast, open: false })}
+        />
       </Box>
-
-      {/* COMPONENT ĐỐI SÁNH TRỰC QUAN */}
-      <FaceCompareModal
-        open={isOpenCompareModal}
-        onClose={() => setIsOpenCompareModal(false)}
-        vehicleData={vehicleData}
-        eventUid={eventUid}
-        onCompareSuccess={() => setSessionStatus("SUCCESS_MATCH")}
-      />
-
-      {/* TOAST THÔNG BÁO TRẠNG THÁI TOÀN CỤC */}
-      <ToastNotification
-        toast={toast}
-        onClose={() => setToast({ ...toast, open: false })}
-      />
-    </Box>
+    </Can>
   );
 }
