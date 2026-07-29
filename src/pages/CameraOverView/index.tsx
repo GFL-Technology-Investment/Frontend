@@ -33,19 +33,18 @@ interface CameraItem {
 
 // 📌 TÁCH BIỆT MOCK DATA: Giúp code gọn gàng, sẵn sàng cho việc fetch API sau này
 const CAMERA_LIST: CameraItem[] = [
-  { id: 'han-in-1', name: 'HAN - Cổng Vào Làn 01', airport: 'HAN', type: 'IN', streamUrl: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?q=80&w=500' },
-  { id: 'han-in-2', name: 'HAN - Cổng Vào Làn 02', airport: 'HAN', type: 'IN', streamUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=500' },
-  { id: 'han-in-3', name: 'HAN - Cổng Vào Làn 03', airport: 'HAN', type: 'IN', streamUrl: 'https://images.unsplash.com/photo-1506015391300-4802dc74de2e?q=80&w=500' },
-  { id: 'han-out-1', name: 'HAN - Cổng Ra Làn 01', airport: 'HAN', type: 'OUT', streamUrl: 'https://images.unsplash.com/photo-1516594709406-e8a17a1537e6?q=80&w=500' },
-  { id: 'han-out-2', name: 'HAN - Cổng Ra Làn 02', airport: 'HAN', type: 'OUT', streamUrl: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?q=80&w=500' },
-  { id: 'han-out-3', name: 'HAN - Cổng Ra Làn 03', airport: 'HAN', type: 'OUT', streamUrl: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?q=80&w=500' },
-  { id: 'sgn-in-1', name: 'SGN - Cổng Vào Làn 01', airport: 'SGN', type: 'IN', streamUrl: 'https://images.unsplash.com/photo-1506015391300-4802dc74de2e?q=80&w=500' },
-  { id: 'sgn-out-1', name: 'SGN - Cổng Ra Làn 01', airport: 'SGN', type: 'OUT', streamUrl: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?q=80&w=500' },
-  { id: 'dad-in-1', name: 'DAD - Cổng Vào Làn 01', airport: 'DAD', type: 'IN', streamUrl: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?q=80&w=500' },
-  { id: 'dad-out-1', name: 'DAD - Cổng Ra Làn 01', airport: 'DAD', type: 'OUT', streamUrl: 'https://images.unsplash.com/photo-1516594709406-e8a17a1537e6?q=80&w=500' },
-  { id: 'cxr-out-1', name: 'CXR - Cổng Ra Giám Sát', airport: 'CXR', type: 'OUT', streamUrl: 'https://images.unsplash.com/photo-1516594709406-e8a17a1537e6?q=80&w=500' },
-  { id: 'hph-in-1', name: 'HPH - Cổng Vào Xe Khách', airport: 'HPH', type: 'IN', streamUrl: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?q=80&w=500' },
-  { id: 'pqc-in-1', name: 'PQC - Cổng Vào An Ninh', airport: 'PQC', type: 'IN', streamUrl: 'https://images.unsplash.com/photo-1506015391300-4802dc74de2e?q=80&w=500' },
+  { id: 'han-in-1', name: 'HAN - Cổng Vào Làn 01', airport: 'HAN', type: 'IN', streamUrl: 'https://phuongdung.com/upload/baiviet/lapdatcameragiamsatchobaigiuxe-1490.jpg' },
+  { id: 'han-in-2', name: 'HAN - Cổng Vào Làn 02', airport: 'HAN', type: 'IN', streamUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSP8b5J8PpdhIMUy9l8Ps53i1xqOBwAI--Nufm8cA7OZsSVB_LTvJ_KR8Q&s=10' },
+  { id: 'han-in-3', name: 'HAN - Cổng Vào Làn 03', airport: 'HAN', type: 'IN', streamUrl: 'https://tl.cdnchinhphu.vn/344445545208135680/2022/6/27/img-5828-16563035923211045998597.jpg' },
+  { id: 'han-out-1', name: 'HAN - Cổng Ra Làn 01', airport: 'HAN', type: 'OUT', streamUrl: 'https://maisonoffice.vn/wp-content/uploads/2024/09/0-bai-do-xe-o-to-ha-noi.jpg' },
+  { id: 'han-out-2', name: 'HAN - Cổng Ra Làn 02', airport: 'HAN', type: 'OUT', streamUrl: 'https://maisonoffice.vn/wp-content/uploads/2024/08/bai-do-xe-hoi.jpg' },
+  { id: 'han-out-3', name: 'HAN - Cổng Ra Làn 03', airport: 'HAN', type: 'OUT', streamUrl: 'https://tl.cdnchinhphu.vn/344445545208135680/2022/6/27/img-5828-16563035923211045998597.jpg' },
+  { id: 'sgn-in-1', name: 'SGN - Cổng Vào Làn 01', airport: 'SGN', type: 'IN', streamUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs0nI1RamuYacFj8e48E7MfOpXSHL7WJc94K0xfExDpCB8ZMWUXXI8FKg&s=10' },
+  { id: 'sgn-out-1', name: 'SGN - Cổng Ra Làn 01', airport: 'SGN', type: 'OUT', streamUrl: 'https://media-cdn-v2.laodong.vn/storage/newsportal/2024/5/31/1347043/Horizon-Tower-3.jpg' },
+  { id: 'dad-in-1', name: 'DAD - Cổng Vào Làn 01', airport: 'DAD', type: 'IN', streamUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSP8b5J8PpdhIMUy9l8Ps53i1xqOBwAI--Nufm8cA7OZsSVB_LTvJ_KR8Q&s=10' },
+  { id: 'cxr-out-1', name: 'CXR - Cổng Ra Giám Sát', airport: 'CXR', type: 'OUT', streamUrl: 'https://maisonoffice.vn/wp-content/uploads/2024/09/0-bai-do-xe-o-to-ha-noi.jpg' },
+  { id: 'hph-in-1', name: 'HPH - Cổng Vào Xe Khách', airport: 'HPH', type: 'IN', streamUrl: 'https://tl.cdnchinhphu.vn/344445545208135680/2022/6/27/img-5828-16563035923211045998597.jpg' },
+  { id: 'pqc-in-1', name: 'PQC - Cổng Vào An Ninh', airport: 'PQC', type: 'IN', streamUrl: 'https://phuongdung.com/upload/baiviet/lapdatcameragiamsatchobaigiuxe-1490.jpg' },
 ];
 
 export default function CameraOverviewPage() {
