@@ -7,6 +7,7 @@ import OrganizationFormDialog from './OrganizationFormDialog';
 import ConfirmDeleteDialog from '../../components/ConfirmDeleteDialog'; // Có thể dùng lại Dialog xóa từ trang User
 import axiosInstance from '../../configs/axios'; // Axios đã cấu hình baseURL và token
 import type { OrganizationItem, OrganizationListResponse } from './Organization';
+import { Can } from '../../components/common/Can';
 
 export default function OrganizationManagementPage() {
   const [organizations, setOrganizations] = useState<OrganizationItem[]>([]);
@@ -103,17 +104,19 @@ export default function OrganizationManagementPage() {
             Quản lý các chi nhánh, tổ chức thuộc hệ thống
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => {
-            setEditingOrg(null);
-            setOpenFormDialog(true);
-          }}
-          sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
-        >
-          Thêm tổ chức
-        </Button>
+        <Can perform="system.organization.create">
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setEditingOrg(null);
+              setOpenFormDialog(true);
+            }}
+            sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
+          >
+            Thêm tổ chức
+          </Button>
+        </Can>
       </Box>
 
       {/* Thông báo Lỗi nếu có */}

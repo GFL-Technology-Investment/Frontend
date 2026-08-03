@@ -5,7 +5,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { OrganizationItem } from './Organization';
-
+import { Can } from '../../components/common/Can';
 interface OrganizationTableProps {
   organizations: OrganizationItem[];
   total: number;
@@ -73,12 +73,16 @@ export default function OrganizationTable({
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton color="primary" size="small" onClick={() => onEditClick(org)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton color="error" size="small" onClick={() => onDeleteClick(org.organization_id)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                      <Can perform="system.organization.update">
+                        <IconButton color="primary" size="small" onClick={() => onEditClick(org)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Can>
+                      <Can perform="system.organization.delete">
+                        <IconButton color="error" size="small" onClick={() => onDeleteClick(org.organization_id)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Can>
                     </TableCell>
                   </TableRow>
                 );

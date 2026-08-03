@@ -6,6 +6,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShieldIcon from '@mui/icons-material/Shield';
 import type { UserItem } from '../types';
+import { Can } from '../../../components/common/Can';
 
 interface UserTableProps {
   users: UserItem[];
@@ -16,6 +17,7 @@ interface UserTableProps {
 
 export default function UserTable({ users, loading, onEditClick, onDeleteClick }: UserTableProps) {
   const theme = useTheme();
+
   // Hàm ánh xạ Organization ID sang tên hiển thị
   const getOrgLabel = (orgId?: string) => {
     switch (orgId) {
@@ -28,7 +30,7 @@ export default function UserTable({ users, loading, onEditClick, onDeleteClick }
     }
   };
 
-  // Hàm định màu sắc cho Chip Tổ chức (tùy chọn cho đẹp mắt)
+  // Hàm định màu sắc cho Chip Tổ chức
   const getOrgChipColor = (orgId?: string) => {
     switch (orgId) {
       case 'org-001':
@@ -39,6 +41,7 @@ export default function UserTable({ users, loading, onEditClick, onDeleteClick }
         return 'default';
     }
   };
+
   const getRoleChipColor = (role: string) => {
     switch (role) {
       case 'ADMIN':
@@ -116,7 +119,7 @@ export default function UserTable({ users, loading, onEditClick, onDeleteClick }
                 {/* Email */}
                 <TableCell sx={{ fontWeight: 500 }}>{user.email}</TableCell>
 
-                {/* HIỂN THỊ TỔ CHỨC DƯỚI DẠNG CHIP (HAN / SGN) */}
+                {/* Mã tổ chức */}
                 <TableCell>
                   <Chip
                     label={getOrgLabel(user.organization_id)}
@@ -143,7 +146,7 @@ export default function UserTable({ users, loading, onEditClick, onDeleteClick }
                   </Stack>
                 </TableCell>
 
-                {/* Permissions (Hover để xem full) */}
+                {/* Permissions */}
                 <TableCell>
                   <Tooltip
                     arrow
@@ -178,24 +181,31 @@ export default function UserTable({ users, loading, onEditClick, onDeleteClick }
                   />
                 </TableCell>
 
-                {/* Hành động */}
+                {/* Hành động (Đã bọc phân quyền) */}
                 <TableCell align="center">
                   <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
-                    <Tooltip title="Chỉnh sửa thông tin">
-                      <IconButton size="small" color="info" onClick={() => onEditClick(user)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Xóa tài khoản">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => onDeleteClick(user.user_id)}
-                        disabled={user.roles.includes('ADMIN')}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    {/* QUYỀN SỬA */}
+                    <Can perform="system.user.update">
+                      <Tooltip title="Chỉnh sửa thông tin">
+                        <IconButton size="small" color="info" onClick={() => onEditClick(user)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Can>
+
+                    {/* QUYỀN XÓA */}
+                    <Can perform="system.user.delete">
+                      <Tooltip title="Xóa tài khoản">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => onDeleteClick(user.user_id)}
+                          disabled={user.roles?.includes('ADMIN')}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Can>
                   </Box>
                 </TableCell>
               </TableRow>
