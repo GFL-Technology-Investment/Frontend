@@ -4,9 +4,11 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import RoleTable from './RoleTable';
 import RoleFormDialog from './RoleFormDialog';
+import LockPatternIcon from "@mui/icons-material/Lock";
 import ConfirmDeleteDialog from '../../components/ConfirmDeleteDialog';
 import axiosInstance from '../../configs/axios';
 import type { RoleItem, RoleListResponse } from './role';
+import { Can } from '../../components/common/Can';
 
 export default function RoleManagementPage() {
   const [roles, setRoles] = useState<RoleItem[]>([]);
@@ -87,117 +89,142 @@ export default function RoleManagementPage() {
   );
 
   return (
-    <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
-            QUẢN LÝ VAI TRÒ & QUYỀN
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-            Quản lý danh sách vai trò và phân quyền trong hệ thống
-          </Typography>
-        </Box>
-
-        <Button
-          variant="contained"
-          color="primary" // Dùng primary thay vì secondary để khớp với tông màu chủ đạo của hệ thống
-          startIcon={<AddIcon />}
-          onClick={() => {
-            setEditingRole(null);
-            setOpenFormDialog(true);
-          }}
-          sx={{ 
-            borderRadius: 2, 
-            textTransform: 'none', 
-            fontWeight: 600,
-            boxShadow: 'none',
-            '&:hover': {
-              boxShadow: (theme) => theme.shadows[2],
-            }
+    <Can 
+      perform="system.role.read"
+      fallback={
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "80vh",
+            p: 3,
           }}
         >
-          Thêm vai trò
-        </Button>
-      </Box>
+          <Alert severity="error" icon={<LockPatternIcon fontSize="large" />}>
+            <Typography variant="h6">Truy cập bị từ chối</Typography>
+            <Typography variant="body2">
+              Bạn không có quyền thực hiện chức năng này. Vui lòng liên hệ quản trị viên.
+            </Typography>
+          </Alert>
+        </Box>
+      }
+    >
+      <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
+        {/* Header */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              QUẢN LÝ VAI TRÒ & QUYỀN
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+              Quản lý danh sách vai trò và phân quyền trong hệ thống
+            </Typography>
+          </Box>
 
-      {/* Alert Error */}
-      {errorMsg && (
-        <Alert severity="error" onClose={() => setErrorMsg('')} sx={{ mb: 3 }}>
-          {errorMsg}
-        </Alert>
-      )}
+          <Can perform="system.role.create">
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                setEditingRole(null);
+                setOpenFormDialog(true);
+              }}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                boxShadow: 'none',
+                '&:hover': {
+                  boxShadow: (theme) => theme.shadows[2],
+                }
+              }}
+            >
+              Thêm vai trò
+            </Button>
+          </Can>
+        </Box>
 
-      {/* Search Bar */}
-      <Paper 
-        elevation={0}
-        sx={{ 
-          p: 2, 
-          mb: 3, 
-          borderRadius: 3, 
-          bgcolor: 'background.paper',
-          border: '1px solid', 
-          borderColor: 'divider' 
-        }}
-      >
-        <TextField
-          placeholder="Tìm theo mã (role_code) hoặc tên vai trò..."
-          size="small"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ 
-            width: { xs: '100%', sm: 360 },
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-            }
+        {/* Alert Error */}
+        {errorMsg && (
+          <Alert severity="error" onClose={() => setErrorMsg('')} sx={{ mb: 3 }}>
+            {errorMsg}
+          </Alert>
+        )}
+
+        {/* Search Bar */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2,
+            mb: 3,
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider'
           }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" sx={{ color: 'action.active' }} />
-                </InputAdornment>
-              ),
-            },
+        >
+          <TextField
+            placeholder="Tìm theo mã (role_code) hoặc tên vai trò..."
+            size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{
+              width: { xs: '100%', sm: 360 },
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+              }
+            }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" sx={{ color: 'action.active' }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        </Paper>
+
+        {/* Table */}
+        <RoleTable
+          roles={filteredRoles}
+          total={total}
+          page={page}
+          limit={limit}
+          loading={loading}
+          onPageChange={(newPage) => setPage(newPage)}
+          onLimitChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
           }}
+          onEditClick={(role) => {
+            setEditingRole(role);
+            setOpenFormDialog(true);
+          }}
+          onDeleteClick={(id) => setDeleteTargetId(id)}
         />
-      </Paper>
 
-      {/* Table */}
-      <RoleTable
-        roles={filteredRoles}
-        total={total}
-        page={page}
-        limit={limit}
-        loading={loading}
-        onPageChange={(newPage) => setPage(newPage)}
-        onLimitChange={(newLimit) => {
-          setLimit(newLimit);
-          setPage(1);
-        }}
-        onEditClick={(role) => {
-          setEditingRole(role);
-          setOpenFormDialog(true);
-        }}
-        onDeleteClick={(id) => setDeleteTargetId(id)}
-      />
+        {/* Form Dialog */}
+        <RoleFormDialog
+          open={openFormDialog}
+          editRole={editingRole}
+          onClose={() => setOpenFormDialog(false)}
+          onSave={handleSaveRole}
+        />
 
-      {/* Form Dialog */}
-      <RoleFormDialog
-        open={openFormDialog}
-        editRole={editingRole}
-        onClose={() => setOpenFormDialog(false)}
-        onSave={handleSaveRole}
-      />
-
-      {/* Confirm Delete Dialog */}
-      <ConfirmDeleteDialog
-        open={Boolean(deleteTargetId)}
-        targetId={deleteTargetId}
-        loading={deleteLoading}
-        onClose={() => setDeleteTargetId(null)}
-        onConfirm={handleConfirmDelete}
-      />
-    </Box>
+        {/* Confirm Delete Dialog */}
+        <ConfirmDeleteDialog
+          open={Boolean(deleteTargetId)}
+          targetId={deleteTargetId}
+          loading={deleteLoading}
+          onClose={() => setDeleteTargetId(null)}
+          onConfirm={handleConfirmDelete}
+        />
+      </Box>
+    </Can>
   );
 }

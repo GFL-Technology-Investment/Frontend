@@ -6,7 +6,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockIcon from '@mui/icons-material/Lock';
 import type { RoleItem } from './role';
-
+import { Can } from '../../components/common/Can';
 interface RoleTableProps {
   roles: RoleItem[];
   total: number;
@@ -31,12 +31,12 @@ export default function RoleTable({
   onDeleteClick,
 }: RoleTableProps) {
   return (
-    <Paper 
+    <Paper
       elevation={0}
-      sx={{ 
-        borderRadius: 3, 
-        border: '1px solid', 
-        borderColor: 'divider', 
+      sx={{
+        borderRadius: 3,
+        border: '1px solid',
+        borderColor: 'divider',
         overflow: 'hidden',
         bgcolor: 'background.paper'
       }}
@@ -71,40 +71,42 @@ export default function RoleTable({
                 return (
                   <TableRow key={role.role_id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                     <TableCell>
-                      <Chip 
-                        label={role.role_code} 
-                        color="primary" 
-                        size="small" 
-                        variant="outlined" 
-                        sx={{ fontWeight: 600, borderRadius: 1.5 }} 
+                      <Chip
+                        label={role.role_code}
+                        color="primary"
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontWeight: 600, borderRadius: 1.5 }}
                       />
                     </TableCell>
                     <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>{role.role_name}</TableCell>
                     <TableCell sx={{ color: 'text.secondary' }}>{role.description || '-'}</TableCell>
                     <TableCell>
                       {isSystemRole ? (
-                        <Chip 
-                          icon={<LockIcon fontSize="small" />} 
-                          label="Hệ thống" 
-                          size="small" 
+                        <Chip
+                          icon={<LockIcon fontSize="small" />}
+                          label="Hệ thống"
+                          size="small"
                           sx={{ bgcolor: 'action.selected', color: 'text.primary', fontWeight: 500 }}
                         />
                       ) : (
-                        <Chip 
-                          label="Tùy chỉnh" 
-                          color="info" 
-                          size="small" 
-                          variant="outlined" 
+                        <Chip
+                          label="Tùy chỉnh"
+                          color="info"
+                          size="small"
+                          variant="outlined"
                           sx={{ fontWeight: 500 }}
                         />
                       )}
                     </TableCell>
                     <TableCell align="right">
-                      <Tooltip title="Chỉnh sửa">
-                        <IconButton color="primary" size="small" onClick={() => onEditClick(role)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      <Can perform="system.role.update">
+                        <Tooltip title="Chỉnh sửa">
+                          <IconButton color="primary" size="small" onClick={() => onEditClick(role)}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Can>
                       {isSystemRole ? (
                         <Tooltip title="Không thể xóa vai trò hệ thống">
                           <span>
@@ -114,11 +116,13 @@ export default function RoleTable({
                           </span>
                         </Tooltip>
                       ) : (
-                        <Tooltip title="Xóa vai trò">
-                          <IconButton color="error" size="small" onClick={() => onDeleteClick(role.role_id)}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <Can perform="system.role.delete">
+                          <Tooltip title="Xóa vai trò">
+                            <IconButton color="error" size="small" onClick={() => onDeleteClick(role.role_id)}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Can>
                       )}
                     </TableCell>
                   </TableRow>

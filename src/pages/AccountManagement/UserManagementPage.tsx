@@ -7,6 +7,7 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import LockPatternIcon from "@mui/icons-material/Lock";
 
 import axiosInstance from '../../configs/axios';
 import UserTable from './components/UserTable';
@@ -14,6 +15,7 @@ import UserFormDialog, { type UserFormData } from './components/UserFormDialog';
 import ConfirmDeleteDialog from '../../components/ConfirmDeleteDialog';
 import type { UserItem, UserListResponse } from './types';
 import { Can } from '../../components/common/Can';
+
 export default function UserManagementPage() {
   const theme = useTheme();
 
@@ -34,19 +36,15 @@ export default function UserManagementPage() {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
-
   // 1. Thêm State lưu Roles tại Page
   const [rolesList, setRolesList] = useState<string[]>(['ADMIN', 'GUARD', 'MANAGER']);
   const [loadingRoles, setLoadingRoles] = useState<boolean>(false);
 
-  // 2. Fetch danh sách Roles ngay khi vào trang
-// Fetch danh sách Roles từ API
+  // 2. Fetch danh sách Roles từ API
   const fetchRoles = useCallback(async () => {
     setLoadingRoles(true);
     try {
       const response = await axiosInstance.get('/api/v1/roles');
-      
-      // Đọc trực tiếp từ response.data.roles
       const rolesData = response.data?.roles;
 
       if (Array.isArray(rolesData)) {
@@ -113,7 +111,6 @@ export default function UserManagementPage() {
   const handleSaveUser = async (formData: UserFormData) => {
     try {
       if (editUser) {
-        // 1. TRƯỜNG HỢP CẬP NHẬT (PATCH /api/v1/user/{user_id}/roles)
         const payload: Record<string, any> = {
           email: formData.email,
           full_name: formData.full_name,
@@ -122,14 +119,12 @@ export default function UserManagementPage() {
           is_active: formData.is_active,
         };
 
-        // Chỉ truyền field password nếu người dùng có nhập mật khẩu mới
         if (formData.password && formData.password.trim().length >= 8) {
           payload.password = formData.password;
         }
 
         await axiosInstance.put(`/api/v1/user/${editUser.user_id}/roles`, payload);
       } else {
-        // 2. TRƯỜNG HỢP TẠO MỚI (POST /api/v1/user)
         await axiosInstance.post('/api/v1/user', {
           email: formData.email,
           password: formData.password,
@@ -140,7 +135,6 @@ export default function UserManagementPage() {
         });
       }
 
-      // Đóng dialog & reload lại danh sách
       setOpenFormDialog(false);
       setEditUser(null);
       await fetchUsers(page, rowsPerPage);
@@ -151,19 +145,13 @@ export default function UserManagementPage() {
     }
   };
 
-  // Hàm xử lý xóa tài khoản khi xác nhận trên Dialog
   const handleConfirmDelete = async () => {
     if (!deleteTargetId) return;
 
     setDeleteLoading(true);
     try {
-      // Gọi API xóa user
       await axiosInstance.delete(`/api/v1/user/${deleteTargetId}`);
-
-      // Đóng dialog
       setDeleteTargetId(null);
-
-      // Reload lại danh sách sau khi xóa thành công
       await fetchUsers(page, rowsPerPage);
     } catch (err: any) {
       console.error('Lỗi khi xóa tài khoản:', err);
@@ -181,111 +169,134 @@ export default function UserManagementPage() {
   );
 
   return (
-    <Box sx={{ p: 2 }}>
-      {/* HEADER PHÂN HỆ */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, textTransform: 'uppercase' }}>
-            <AccountCircleIcon color="primary" /> Quản lý danh sách tài khoản
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Quản lý hồ sơ, cấp phát tài khoản đăng nhập và phân vai trò hoạt động ({total} tài khoản).
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={() => fetchUsers(page, rowsPerPage)}
-            disabled={loading}
-            sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
-          >
-            Làm mới
-          </Button>
-          {/* CHỈ HIỂN THỊ NÚT TẠO TÀI KHOẢN KHI CÓ QUYỀN system.user.create */}
-          <Can perform="system.user.create">
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleOpenAdd}
-              sx={{ borderRadius: '8px', fontWeight: 'bold', textTransform: 'none', px: 3 }}
-            >
-              Tạo tài khoản
-            </Button>
-          </Can>
-        </Box>
-      </Box>
-
-      {/* TÌM KIẾM */}
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          size="small"
-          placeholder="Nhập ID, họ tên hoặc email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+    <Can 
+      perform="system.user.read"
+      fallback={
+        <Box
           sx={{
-            width: { xs: '100%', sm: 400 },
-            bgcolor: theme.palette.customBg?.card || 'background.paper',
-            '& .MuiOutlinedInput-root': { borderRadius: '8px' }
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "80vh",
+            p: 3,
           }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }
-          }}
+        >
+          <Alert severity="error" icon={<LockPatternIcon fontSize="large" />}>
+            <Typography variant="h6">Truy cập bị từ chối</Typography>
+            <Typography variant="body2">
+              Bạn không có quyền thực hiện chức năng này. Vui lòng liên hệ quản trị viên.
+            </Typography>
+          </Alert>
+        </Box>
+      }
+    >
+      <Box sx={{ p: 2 }}>
+        {/* HEADER PHÂN HỆ */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, textTransform: 'uppercase' }}>
+              <AccountCircleIcon color="primary" /> Quản lý danh sách tài khoản
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              Quản lý hồ sơ, cấp phát tài khoản đăng nhập và phân vai trò hoạt động ({total} tài khoản).
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1.5 }}>
+            <Button
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              onClick={() => fetchUsers(page, rowsPerPage)}
+              disabled={loading}
+              sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
+            >
+              Làm mới
+            </Button>
+            {/* CHỈ HIỂN THỊ NÚT TẠO TÀI KHOẢN KHI CÓ QUYỀN system.user.create */}
+            <Can perform="system.user.create">
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenAdd}
+                sx={{ borderRadius: '8px', fontWeight: 'bold', textTransform: 'none', px: 3 }}
+              >
+                Tạo tài khoản
+              </Button>
+            </Can>
+          </Box>
+        </Box>
+
+        {/* TÌM KIẾM */}
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            size="small"
+            placeholder="Nhập ID, họ tên hoặc email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{
+              width: { xs: '100%', sm: 400 },
+              bgcolor: theme.palette.customBg?.card || 'background.paper',
+              '& .MuiOutlinedInput-root': { borderRadius: '8px' }
+            }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }
+            }}
+          />
+        </Box>
+
+        {errorMsg && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errorMsg}
+          </Alert>
+        )}
+
+        {/* USER TABLE */}
+        <UserTable
+          users={filteredUsers}
+          loading={loading}
+          onEditClick={handleOpenEdit}
+          onDeleteClick={(id) => setDeleteTargetId(id)}
+        />
+
+        {/* PAGINATION */}
+        <TablePagination
+          rowsPerPageOptions={[10, 20, 50, 100]}
+          component="div"
+          count={total}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Số dòng/trang:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} trong tổng số ${count}`}
+        />
+
+        {/* FORM DIALOG (THÊM / SỬA) */}
+        <UserFormDialog
+          rolesList={rolesList}
+          loadingRoles={loadingRoles}
+          open={openFormDialog}
+          editUser={editUser}
+          onClose={() => setOpenFormDialog(false)}
+          onSave={handleSaveUser}
+        />
+
+        {/* CONFIRM DELETE DIALOG */}
+        <ConfirmDeleteDialog
+          open={Boolean(deleteTargetId)}
+          targetId={deleteTargetId}
+          loading={deleteLoading}
+          onClose={() => setDeleteTargetId(null)}
+          onConfirm={handleConfirmDelete}
         />
       </Box>
-
-      {errorMsg && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {errorMsg}
-        </Alert>
-      )}
-
-      {/* USER TABLE */}
-      <UserTable
-        users={filteredUsers}
-        loading={loading}
-        onEditClick={handleOpenEdit}
-        onDeleteClick={(id) => setDeleteTargetId(id)}
-      />
-
-      {/* PAGINATION */}
-      <TablePagination
-        rowsPerPageOptions={[10, 20, 50, 100]}
-        component="div"
-        count={total}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        labelRowsPerPage="Số dòng/trang:"
-        labelDisplayedRows={({ from, to, count }) => `${from}–${to} trong tổng số ${count}`}
-      />
-
-      {/* FORM DIALOG (THÊM / SỬA) */}
-      <UserFormDialog
-        rolesList={rolesList}
-        loadingRoles={loadingRoles}
-        open={openFormDialog}
-        editUser={editUser}
-        onClose={() => setOpenFormDialog(false)}
-        onSave={handleSaveUser}
-      />
-
-      {/* CONFIRM DELETE DIALOG */}
-      <ConfirmDeleteDialog
-        open={Boolean(deleteTargetId)}
-        targetId={deleteTargetId}
-        loading={deleteLoading}
-        onClose={() => setDeleteTargetId(null)}
-        onConfirm={handleConfirmDelete}
-      />
-    </Box>
+    </Can>
   );
 }
